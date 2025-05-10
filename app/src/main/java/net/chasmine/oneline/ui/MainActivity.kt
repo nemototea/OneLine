@@ -1,4 +1,4 @@
-package net.chasmine.oneline
+package net.chasmine.oneline.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
