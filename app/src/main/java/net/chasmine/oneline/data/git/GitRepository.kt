@@ -1,77 +1,223 @@
 package net.chasmine.oneline.data.git
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import org.eclipse.jgit.api.PullResult
+import net.chasmine.oneline.data.model.DiaryEntry
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.errors.GitAPIException
+import org.eclipse.jgit.transport.CredentialsProvider
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import java.io.File
+import java.io.IOException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-import org.eclipse.jgit.api.TransportConfigCallback
-import org.eclipse.jgit.transport.PushResult
-import org.eclipse.jgit.transport.SshTransport
-import org.eclipse.jgit.transport.ssh.apache.DefaultSshSessionFactory
+class GitRepository private constructor(private val context: Context) {
 
-class GitRepository {
+    private val TAG = "GitRepository"
+    private var git: Git? = null
+    private var credentialsProvider: CredentialsProvider? = null
+    private var repoDirectory: File? = null
+    private var isInitialized = false
+
+    companion object {
+        // ウィジェットから常に参照されるのでメモリリーク警告を抑制
+        // アプリケーションコンテキストを使用しているため、メモリリークの心配はない
+        @SuppressLint("StaticFieldLeak")
+        @Volatile
+        private var INSTANCE: GitRepository? = null
+
+        fun getInstance(context: Context): GitRepository {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: GitRepository(context.applicationContext).also {
+                    INSTANCE = it
+                }
+            }
+        }
+    }
+
     /**
-     * HTTPSでリポジトリをクローンする
+     * リポジトリの初期化
+     * 初回：クローン
+     * 2回目以降：オープン
      */
-    suspend fun cloneRepository(
+    suspend fun initRepository(
         remoteUrl: String,
-        localPath: File,
         username: String,
         password: String
-    ): Result<Git> = withContext(Dispatchers.IO) {
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val credentialsProvider = UsernamePasswordCredentialsProvider(username, password)
+            repoDirectory = File(context.filesDir, "OneLine_repository")
+            credentialsProvider = UsernamePasswordCredentialsProvider(username, password)
 
-            val git = Git.cloneRepository()
-                .setURI(remoteUrl)
-                .setDirectory(localPath)
-                .setCredentialsProvider(credentialsProvider)
-                .call()
+            if (repoDirectory!!.exists() || !File(repoDirectory, ".git").exists()) {
+                Log.d(TAG, "Cloning repository from $remoteUrl")
+                repoDirectory!!.mkdirs()
+                git = Git.cloneRepository()
+                    .setURI(remoteUrl)
+                    .setDirectory(repoDirectory)
+                    .setCredentialsProvider(credentialsProvider)
+                    .call()
+            } else {
+                Log.d(TAG, "Repository already exists at $repoDirectory")
+                git = Git.open(repoDirectory)
+            }
 
-            Result.success(git)
+            isInitialized = true
+            Result.success(true)
+        } catch (e: GitAPIException) {
+            Log.e(TAG, "Git API error during init", e)
+            Result.failure(e)
+        } catch (e: IOException) {
+            Log.e(TAG, "IO error during init", e)
+            Result.failure(e)
         } catch (e: Exception) {
+            Log.e(TAG, "Error during repository init", e)
             Result.failure(e)
         }
     }
 
     /**
-     * SSH経由でリポジトリをクローンする
+     * すべての日記エントリを取得
      */
-    suspend fun cloneRepositoryWithSsh(
-        remoteUrl: String,
-        localPath: File,
-        privateKeyPath: File,
-        passphrase: String? = null
-    ): Result<Git> = withContext(Dispatchers.IO) {
+    fun getAllEntries(): Flow<List<DiaryEntry>> = flow {
+        val entries = mutableListOf<DiaryEntry>()
+
         try {
-            // SSH設定
-            val sshSessionFactory = object : DefaultSshSessionFactory() {
-                override fun getDefaultKeysFile(): List<File> {
-                    // デフォルトのSSHキーリストに追加
-                    val keys = super.getDefaultKeysFile().toMutableList()
-                    keys.add(privateKeyPath)
-                    return keys
+            if (repoDirectory?.exists() == true) {
+                val mdFiles = repoDirectory!!.listFiles { file ->
+                    file.isFile && file.name.endsWith(".md")
                 }
-            }
 
-            // トランスポート設定
-            val transportConfigCallback = TransportConfigCallback { transport ->
-                if (transport is SshTransport) {
-                    transport.sshSessionFactory = sshSessionFactory
+                mdFiles?.forEach { file ->
+                    try {
+                        val fileName = file.name
+                        // ファイル名からYYYY-MM-DD部分を抽出
+                        val dateStr = fileName.substringBefore(".md")
+                        val date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+
+                        // ファイルの内容を読み取り
+                        val content = file.readText()
+
+                        entries.add(DiaryEntry(
+                            date = date,
+                            content = content,
+                            lastModified = file.lastModified()
+                        ))
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing file ${file.name}", e)
+                    }
                 }
+
+                // 日付の新しい順にソート
+                entries.sortByDescending { it.date }
             }
-
-            val git = Git.cloneRepository()
-                .setURI(remoteUrl)
-                .setDirectory(localPath)
-                .setTransportConfigCallback(transportConfigCallback)
-                .call()
-
-            Result.success(git)
         } catch (e: Exception) {
+            Log.e(TAG, "Error reading entries", e)
+        }
+
+        emit(entries)
+    }.flowOn(Dispatchers.IO)
+
+    /**
+     * 特定の日付の日記エントリを取得
+     */
+    suspend fun getEntry(dateStr: String): DiaryEntry? = withContext(Dispatchers.IO) {
+        try {
+            val fileName = "$dateStr.md"
+            val file = File(repoDirectory, fileName)
+
+            if (file.exists()) {
+                val content = file.readText()
+                val localDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+                return@withContext DiaryEntry(
+                    date = localDate,
+                    content = content,
+                    lastModified = file.lastModified()
+                )
+            }
+
+            null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting entry for date $dateStr", e)
+            null
+        }
+    }
+
+    // 日記エントリを保存
+    suspend fun saveEntry(entry: DiaryEntry): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            if (!isInitialized) {
+                return@withContext Result.failure(Exception("Repository not initialized"))
+            }
+
+            val fileName = entry.getFileName()
+            val file = File(repoDirectory, fileName)
+
+            // ファイルに内容を書き込み
+            file.writeText(entry.content)
+
+            // Gitに変更を追加してコミット
+            git?.add()?.addFilepattern(fileName)?.call()
+
+            val commitMessage = if (file.length() == 0L) {
+                "Delete entry for ${entry.date}"
+            } else {
+                "Update entry for ${entry.date}"
+            }
+
+            git?.commit()?.setMessage(commitMessage)?.call()
+
+            Result.success(true)
+        } catch (e: GitAPIException) {
+            Log.e(TAG, "Git API error during save", e)
+            Result.failure(e)
+        } catch (e: IOException) {
+            Log.e(TAG, "IO error during save", e)
+            Result.failure(e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during save", e)
+            Result.failure(e)
+        }
+    }
+
+    // 日記エントリを削除
+    suspend fun deleteEntry(entry: DiaryEntry): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            if (!isInitialized) {
+                return@withContext Result.failure(Exception("Repository not initialized"))
+            }
+
+            val fileName = entry.getFileName()
+            val file = File(repoDirectory, fileName)
+
+            if (file.exists()) {
+                file.delete()
+
+                // Gitから削除をステージング
+                git?.rm()?.addFilepattern(fileName)?.call()
+
+                // コミット
+                git?.commit()?.setMessage("Delete entry for ${entry.date}")?.call()
+
+                return@withContext Result.success(true)
+            }
+
+            Result.failure(Exception("File does not exist"))
+        } catch (e: GitAPIException) {
+            Log.e(TAG, "Git API error during delete", e)
+            Result.failure(e)
+        } catch (e: IOException) {
+            Log.e(TAG, "IO error during delete", e)
+            Result.failure(e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during delete", e)
             Result.failure(e)
         }
     }
@@ -79,55 +225,39 @@ class GitRepository {
     /**
      * リモートからプル
      */
-    suspend fun pullFromRemote(
-        repositoryPath: File,
-        username: String,
-        password: String,
-        remoteBranch: String = "origin/main"
-    ): Result<PullResult> = withContext(Dispatchers.IO) {
+    suspend fun syncRepository(): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val credentialsProvider = UsernamePasswordCredentialsProvider(username, password)
-
-            Git.open(repositoryPath).use { git ->
-                val pullResult = git.pull()
-                    .setCredentialsProvider(credentialsProvider)
-                    .setRemoteBranchName(remoteBranch)
-                    .call()
-
-                Result.success(pullResult)
+            if (!isInitialized || git == null || credentialsProvider == null) {
+                return@withContext Result.failure(Exception("Repository not initialized"))
             }
+
+            // まずプル
+            val pullResult = git!!.pull()
+                .setCredentialsProvider(credentialsProvider)
+                .call()
+
+            // 次にプッシュ
+            val pushResult = git!!.push()
+                .setCredentialsProvider(credentialsProvider)
+                .call()
+
+            Log.d(TAG, "Pull result: ${pullResult.mergeResult?.mergeStatus}")
+            Log.d(TAG, "Push result: $pushResult")
+
+            Result.success(true)
+        } catch (e: GitAPIException) {
+            Log.e(TAG, "Git API error during sync", e)
+            Result.failure(e)
         } catch (e: Exception) {
+            Log.e(TAG, "Error during sync", e)
             Result.failure(e)
         }
     }
 
     /**
-     * リモートにプッシュ
+     * リポジトリの初期化状態を確認
      */
-    suspend fun pushToRemote(
-        repositoryPath: File,
-        username: String,
-        password: String,
-        remoteName: String = "origin",
-        pushAll: Boolean = false
-    ): Result<Iterable<PushResult>> = withContext(Dispatchers.IO) {
-        try {
-            val credentialsProvider = UsernamePasswordCredentialsProvider(username, password)
-
-            Git.open(repositoryPath).use { git ->
-                val pushCommand = git.push()
-                    .setCredentialsProvider(credentialsProvider)
-                    .setRemote(remoteName)
-
-                if (pushAll) {
-                    pushCommand.setPushAll()
-                }
-
-                val result = pushCommand.call()
-                Result.success(result)
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    fun isConfigValid(): Boolean {
+        return isInitialized
     }
 }
