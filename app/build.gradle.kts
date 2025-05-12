@@ -18,6 +18,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     buildTypes {
@@ -81,19 +84,12 @@ dependencies {
 
     // JGit for Git operations
     implementation(libs.org.eclipse.jgit)
-    implementation(libs.org.eclipse.jgit.ssh.apache)
-    // Apache MINA SSHD (SSH接続用)
-    implementation(libs.sshd.core)
-    implementation(libs.sshd.sftp)
+
     // Bouncy Castle (暗号化ライブラリ)
     implementation(libs.bcprov.jdk18on)
     implementation(libs.bcpkix.jdk18on)
 
     // Data Store for settings
     implementation(libs.androidx.datastore.preferences)
-
-    // Date/Time handling
-    implementation(libs.threetenabp)
-
 
 }
