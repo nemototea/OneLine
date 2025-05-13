@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class DiaryListViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -23,7 +24,22 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
     val syncStatus: StateFlow<SyncStatus> = _syncStatus
 
-    val entries: Flow<List<DiaryEntry>> = gitRepository.getAllEntries()
+//    val entries: Flow<List<DiaryEntry>> = gitRepository.getAllEntries()
+    val entries: Flow<List<DiaryEntry>> = MutableStateFlow(
+        listOf(
+            DiaryEntry(
+                date = LocalDate.now(),
+                content = "これはサンプルの日記エントリです。",
+                lastModified = System.currentTimeMillis()
+            ),
+            DiaryEntry(
+                date = LocalDate.now().minusDays(1),
+                content = "昨日の日記エントリのサンプルです。" +
+                        "\n" + "テストテストテストテストテストテストテストテストテスト" + LocalDate.now().toString(),
+                lastModified = System.currentTimeMillis()
+            )
+        )
+    )
 
     init {
         viewModelScope.launch {

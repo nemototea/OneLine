@@ -27,6 +27,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".widget.popup.DiaryWidgetEntryActivity"
+            android:theme="@style/Theme.Dialog"
+            android:exported="false" />
+
         <receiver
             android:name=".widget.JournalWidgetReceiver"
             android:exported="false">
