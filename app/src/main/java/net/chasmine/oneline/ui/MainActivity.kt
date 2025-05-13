@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
         // ウィジェットからの起動かどうかをチェック
         val fromWidget = intent.getBooleanExtra("EXTRA_FROM_WIDGET", false)
         val openNewEntry = intent.getBooleanExtra("EXTRA_OPEN_NEW_ENTRY", false)
+        val openSettings = intent?.getBooleanExtra("OPEN_SETTINGS", false) ?: false
 
         setContent {
             OneLineTheme {
@@ -40,7 +41,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     OneLineApp(
                         fromWidget = fromWidget,
-                        openNewEntry = openNewEntry
+                        openNewEntry = openNewEntry,
+                        openSettings = openSettings
                     )
                 }
             }
@@ -51,14 +53,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun OneLineApp(
     fromWidget: Boolean = false,
-    openNewEntry: Boolean = false
+    openNewEntry: Boolean = false,
+    openSettings: Boolean = false
 ) {
     val navController = rememberNavController()
 
-    // ウィジェットから起動された場合、新規エントリー画面に遷移
-    LaunchedEffect(fromWidget, openNewEntry) {
-        if (fromWidget && openNewEntry) {
-            navController.navigate("journal_edit/new")
+    // ウィジェットから起動された場合の画面遷移
+    LaunchedEffect(fromWidget, openNewEntry, openSettings) {
+        if (fromWidget) {
+            if (openNewEntry) {
+                navController.navigate("diary_edit/new")
+            } else if (openSettings) {
+                navController.navigate("settings")
+            } else {
+                navController.navigate("diary_list")
+            }
         }
     }
 
