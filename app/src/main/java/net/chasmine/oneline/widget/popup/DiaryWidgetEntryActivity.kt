@@ -70,11 +70,11 @@ fun DiaryEntryDialog(
     onDismiss: () -> Unit
 ) {
     var content by remember { mutableStateOf(initialContent) }
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        delay(100) // 少し遅延させてダイアログが表示された後にフォーカス
-        focusRequester.requestFocus()
-    }
+//    val focusRequester = remember { FocusRequester() }
+//    LaunchedEffect(Unit) {
+//        delay(100) // 少し遅延させてダイアログが表示された後にフォーカス
+//        focusRequester.requestFocus()
+//    }
 
     Dialog(
         onDismissRequest = onDismiss,
