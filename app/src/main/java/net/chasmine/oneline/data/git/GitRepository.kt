@@ -56,7 +56,7 @@ class GitRepository private constructor(private val context: Context) {
             repoDirectory = File(context.filesDir, "OneLine_repository")
             credentialsProvider = UsernamePasswordCredentialsProvider(username, password)
 
-            if (repoDirectory!!.exists() || !File(repoDirectory, ".git").exists()) {
+            if (!repoDirectory!!.exists()) {
                 Log.d(TAG, "Cloning repository from $remoteUrl")
                 repoDirectory!!.mkdirs()
                 git = Git.cloneRepository()
