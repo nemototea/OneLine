@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">OneLine</string>
+    <string name="journal_widget_description">一行日記を素早く作成するためのウィジェット</string>
 </resources>
