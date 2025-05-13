@@ -72,21 +72,4 @@ class DiaryWidget : GlanceAppWidget() {
 // ウィジェットプロバイダー（WidgetProviderに相当）
 class JournalWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = DiaryWidget()
-
-//    override fun onUpdate(
-//        context: Context,
-//        appWidgetManager: AppWidgetManager,
-//        appWidgetIds: IntArray
-//    ) {
-//        super.onUpdate(context, appWidgetManager, appWidgetIds)
-//
-//        // プレビュー表示時にもウィジェットを適切に表示するための処理
-//        val remoteViews = RemoteViews(context.packageName, R.layout.widget_preview_layout)
-//        appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
-//
-//        // Glanceウィジェットの更新も実行
-//        MainScope().launch {
-//            DiaryWidget().updateAll(context)
-//        }
-//    }
 }
