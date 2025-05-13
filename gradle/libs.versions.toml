@@ -2,6 +2,7 @@
 agp = "8.10.0"
 bcprovJdk18on = "1.77"
 datastorePreferences = "1.0.0"
+glance = "1.1.1"
 hilt = "2.48"
 hiltAndroid = "2.48"
 hiltNavigationCompose = "1.1.0"
@@ -21,6 +22,9 @@ orgEclipseJgit = "6.8.0.202311291450-r"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-glance = { module = "androidx.glance:glance", version.ref = "glance" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }

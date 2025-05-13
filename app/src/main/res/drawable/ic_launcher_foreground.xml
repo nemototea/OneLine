@@ -1,30 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- グロー効果用に利用する色 -->
+    <path android:pathData="M0,0h1v1h-1z" android:fillColor="#00000000" />
+
+    <!-- スタイリッシュなタイムライン縦線 -->
+    <path android:pathData="M42,27L42,81Q43,81 43,80L43,28Q43,27 42,27Z"
+        android:fillColor="#FFD700" />
+
+    <!-- 日記エントリーのリング（過去）- 透明度0.4 -->
+    <group android:alpha="0.4">
+        <path
+            android:pathData="M42,36m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"
+            android:strokeWidth="1.5"
+            android:strokeColor="#A0A0C0"
+            android:fillColor="#00000000"/>
+        <path
+            android:pathData="M48,36L72,36"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:strokeColor="#E0E0E0"/>
+    </group>
+
+    <!-- 過去の別エントリー - 透明度0.6 -->
+    <group android:alpha="0.6">
+        <path
+            android:pathData="M42,45m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"
+            android:strokeWidth="1.5"
+            android:strokeColor="#A0A0C0"
+            android:fillColor="#00000000"/>
+        <path
+            android:pathData="M48,45L72,45"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:strokeColor="#E0E0E0"/>
+    </group>
+
+    <!-- 今日のエントリー (中央強調) -->
+    <!-- ゴールドの強調リング (グロー効果付き) -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M42,54m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0"
+        android:fillColor="#33FFD700"/>  <!-- 薄いグロー効果の背景 -->
+    <path
+        android:pathData="M42,54m-5.5,0a5.5,5.5 0,1 1,11 0a5.5,5.5 0,1 1,-11 0"
+        android:strokeWidth="1.8"
+        android:strokeColor="#FFD700"
+        android:fillColor="#00000000"/>
+    <path
+        android:pathData="M42,54m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
+        android:fillColor="#FFD700"/>
+
+    <!-- テキストライン (白い長方形) -->
+    <path
+        android:pathData="M48,51L75,51Q77.5,51 77.5,53.5L77.5,54.5Q77.5,57 75,57L48,57Q45.5,57 45.5,54.5L45.5,53.5Q45.5,51 48,51Z"
+        android:fillColor="#FFFFFF"/>
+
+    <!-- テキストライン内のエフェクト (シンプル化) -->
+    <path
+        android:pathData="M45.5,51h32v6h-32z"
+        android:fillColor="#33FFD700"
+        android:alpha="0.3"/>
+
+    <!-- 未来のエントリー（作成予定） - 透明度0.3 -->
+    <group android:alpha="0.3">
+        <path
+            android:pathData="M42,63m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"
+            android:strokeWidth="1.5"
+            android:strokeColor="#A0A0C0"
+            android:fillColor="#00000000"/>
+        <path
+            android:pathData="M48,63L72,63"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:strokeColor="#E0E0E0"/>
+    </group>
+
+    <!-- もう一つの未来エントリー -->
+    <group android:alpha="0.2">
+        <path
+            android:pathData="M42,72m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"
+            android:strokeWidth="1.5"
+            android:strokeColor="#A0A0C0"
+            android:fillColor="#00000000"/>
+        <path
+            android:pathData="M48,72L72,72"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:strokeColor="#E0E0E0"/>
+    </group>
 </vector>
