@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -88,15 +89,13 @@ class GitRepository private constructor(private val context: Context) {
     /**
      * すべての日記エントリを取得
      */
-    fun getAllEntries(settingsManager: SettingsManager, dateUtils: DateUtils): Flow<List<DiaryEntry>> = flow {
+    fun getAllEntries(dateUtils: DateUtils): Flow<List<DiaryEntry>> = flow {
         val entries = mutableListOf<DiaryEntry>()
 
         try {
-            val directoryPath = settingsManager.directoryPath.first() ?: repoDirectory?.absolutePath
-            val directory = File(directoryPath ?: return@flow)
 
-            if (directory.exists()) {
-                val mdFiles = directory.listFiles { file ->
+            if (repoDirectory?.exists() == true) {
+                val mdFiles = repoDirectory!!.listFiles { file ->
                     file.isFile && file.name.endsWith(".md") &&
                     dateUtils.isValidDateFormat(file.nameWithoutExtension, "yyyy-MM-dd")
                 }
