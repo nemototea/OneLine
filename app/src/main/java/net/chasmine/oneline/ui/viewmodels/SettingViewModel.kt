@@ -21,14 +21,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState
 
-    private val _directoryPath = MutableStateFlow<String?>(null)
-    val directoryPath: StateFlow<String?> = _directoryPath
-
     init {
         loadSettings()
-        viewModelScope.launch {
-            _directoryPath.value = settingsManager.directoryPath.first()
-        }
     }
 
     private fun loadSettings() {
@@ -73,13 +67,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Failed to save settings")
             }
-        }
-    }
-
-    fun saveDirectoryPath(path: String) {
-        viewModelScope.launch {
-            settingsManager.saveDirectoryPath(path)
-            _directoryPath.value = path
         }
     }
 
