@@ -17,6 +17,8 @@ import java.io.File
 import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.util.DateUtils
 
 class GitRepository private constructor(private val context: Context) {
 
@@ -86,23 +88,25 @@ class GitRepository private constructor(private val context: Context) {
     /**
      * すべての日記エントリを取得
      */
-    fun getAllEntries(): Flow<List<DiaryEntry>> = flow {
+    fun getAllEntries(settingsManager: SettingsManager, dateUtils: DateUtils): Flow<List<DiaryEntry>> = flow {
         val entries = mutableListOf<DiaryEntry>()
 
         try {
-            if (repoDirectory?.exists() == true) {
-                val mdFiles = repoDirectory!!.listFiles { file ->
-                    file.isFile && file.name.endsWith(".md")
+            val directoryPath = settingsManager.directoryPath.first() ?: repoDirectory?.absolutePath
+            val directory = File(directoryPath ?: return@flow)
+
+            if (directory.exists()) {
+                val mdFiles = directory.listFiles { file ->
+                    file.isFile && file.name.endsWith(".md") &&
+                    dateUtils.isValidDateFormat(file.nameWithoutExtension, "yyyy-MM-dd")
                 }
 
                 mdFiles?.forEach { file ->
                     try {
                         val fileName = file.name
-                        // ファイル名からYYYY-MM-DD部分を抽出
                         val dateStr = fileName.substringBefore(".md")
                         val date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
 
-                        // ファイルの内容を読み取り
                         val content = file.readText()
 
                         entries.add(DiaryEntry(
@@ -115,7 +119,6 @@ class GitRepository private constructor(private val context: Context) {
                     }
                 }
 
-                // 日付の新しい順にソート
                 entries.sortByDescending { it.date }
             }
         } catch (e: Exception) {

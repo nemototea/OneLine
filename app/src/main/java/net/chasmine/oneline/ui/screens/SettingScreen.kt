@@ -31,6 +31,11 @@ fun SettingsScreen(
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    val directoryPath by viewModel.directoryPath.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    var newDirectoryPath by remember { mutableStateOf(directoryPath ?: "") }
+
     LaunchedEffect(uiState) {
         if (uiState is SettingsViewModel.UiState.Loaded) {
             val loadedState = uiState as SettingsViewModel.UiState.Loaded
@@ -136,6 +141,24 @@ fun SettingsScreen(
                         enabled = uiState !is SettingsViewModel.UiState.Saving
                     ) {
                         Text("設定を保存する")
+                    }
+
+                    TextField(
+                        value = newDirectoryPath,
+                        onValueChange = { newDirectoryPath = it },
+                        label = { Text("Directory Path") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                viewModel.saveDirectoryPath(newDirectoryPath)
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Save")
                     }
                 }
 

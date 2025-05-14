@@ -54,12 +54,31 @@ class SettingsManager(private val context: Context) {
         repoUrl.isNotBlank() && username.isNotBlank() && token.isNotBlank()
     }
 
+    /**
+     * ディレクトリパスを保存
+     */
+    suspend fun saveDirectoryPath(path: String) {
+        context.dataStore.edit { settings ->
+            settings[DIRECTORY_PATH_KEY] = path
+        }
+    }
+
+    /**
+     * ディレクトリパスを取得
+     */
+    val directoryPath: Flow<String?> = context.dataStore.data
+        .map { settings ->
+            settings[DIRECTORY_PATH_KEY]
+        }
+
     companion object {
         // ウィジェットから常に参照されるのでメモリリーク警告を抑制
         // アプリケーションコンテキストを使用しているため、メモリリークの心配はない
         @SuppressLint("StaticFieldLeak")
         @Volatile
         private var INSTANCE: SettingsManager? = null
+
+        private val DIRECTORY_PATH_KEY = stringPreferencesKey("directory_path")
 
         fun getInstance(context: Context): SettingsManager {
             return INSTANCE ?: synchronized(this) {
