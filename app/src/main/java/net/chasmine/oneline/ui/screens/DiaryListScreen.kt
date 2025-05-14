@@ -107,7 +107,7 @@ fun DiaryListScreen(
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
-            } else if (entries.isEmpty()) {
+            } else if (entries.isEmpty() && !isLoading) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
