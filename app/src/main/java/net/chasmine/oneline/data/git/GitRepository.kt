@@ -89,7 +89,7 @@ class GitRepository private constructor(private val context: Context) {
     /**
      * すべての日記エントリを取得
      */
-    fun getAllEntries(dateUtils: DateUtils): Flow<List<DiaryEntry>> = flow {
+    fun getAllEntries(): Flow<List<DiaryEntry>> = flow {
         val entries = mutableListOf<DiaryEntry>()
 
         try {
@@ -97,7 +97,7 @@ class GitRepository private constructor(private val context: Context) {
             if (repoDirectory?.exists() == true) {
                 val mdFiles = repoDirectory!!.listFiles { file ->
                     file.isFile && file.name.endsWith(".md") &&
-                    dateUtils.isValidDateFormat(file.nameWithoutExtension, "yyyy-MM-dd")
+                    DateUtils.isValidDateFormat(file.nameWithoutExtension, "yyyy-MM-dd")
                 }
 
                 mdFiles?.forEach { file ->

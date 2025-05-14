@@ -2,10 +2,8 @@ package net.chasmine.oneline.util
 
 import java.text.SimpleDateFormat
 import java.util.Locale
-import javax.inject.Inject
 
-class DateUtils @Inject constructor()
-{
+object DateUtils {
 
     /**
      * ファイル名が指定された日付フォーマットに一致するかを検証
