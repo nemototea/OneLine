@@ -34,7 +34,7 @@ fun DiaryListScreen(
     var showSyncStatusMessage by remember { mutableStateOf(false) }
     var syncStatusMessage by remember { mutableStateOf("") }
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(Unit) {
         viewModel.loadEntries()
     }
 
