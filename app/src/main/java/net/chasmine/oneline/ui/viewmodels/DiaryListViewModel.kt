@@ -78,6 +78,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
                 result.fold(
                     onSuccess = {
                         _syncStatus.value = SyncStatus.Success
+                        loadEntries() // 同期成功後にエントリを再ロード
                     },
                     onFailure = { e ->
                         _syncStatus.value = SyncStatus.Error(e.message ?: "Sync failed")
