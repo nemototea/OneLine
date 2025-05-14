@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class DiaryEditViewModel(application: Application) : AndroidViewModel(application) {
+class DiaryEditViewModel(application: Application, private val diaryListViewModel: DiaryListViewModel) : AndroidViewModel(application) {
 
     private val gitRepository = GitRepository.getInstance(application)
 
@@ -78,6 +78,7 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
                     result.fold(
                         onSuccess = {
                             _saveStatus.value = SaveStatus.Success
+                            diaryListViewModel.loadEntries() // 投稿後にリストを更新
                         },
                         onFailure = { e ->
                             _saveStatus.value = SaveStatus.Error(e.message ?: "Save failed")
