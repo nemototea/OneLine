@@ -1,6 +1,7 @@
 package net.chasmine.oneline.ui.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import net.chasmine.oneline.data.git.GitRepository
@@ -32,6 +33,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
             val hasSettings = settingsManager.hasValidSettings.first()
             if (hasSettings) {
                 initializeRepository()
+                loadEntries() // リポジトリ初期化後にエントリをロード
             }
         }
     }
@@ -40,6 +42,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             gitRepository.getAllEntries().collect { diaryEntries ->
                 _entries.value = diaryEntries
+                Log.d("DiaryListViewModel", "Loaded entries: ${diaryEntries.size}") // デバッグ用ログ
             }
         }
     }
