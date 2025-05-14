@@ -24,7 +24,8 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
     val syncStatus: StateFlow<SyncStatus> = _syncStatus
 
-    val entries: Flow<List<DiaryEntry>> = gitRepository.getAllEntries()
+    private val _entries = MutableStateFlow<List<DiaryEntry>>(emptyList())
+    val entries: StateFlow<List<DiaryEntry>> = _entries
 
     init {
         viewModelScope.launch {
@@ -36,8 +37,11 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun loadEntries() {
-        // getAllEntriesはFlowを返すので、自動的に更新される
-        // ここでは特に何もする必要はない
+        viewModelScope.launch {
+            gitRepository.getAllEntries().collect { diaryEntries ->
+                _entries.value = diaryEntries
+            }
+        }
     }
 
     private suspend fun initializeRepository() {
