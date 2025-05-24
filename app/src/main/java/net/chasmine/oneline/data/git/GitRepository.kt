@@ -250,9 +250,14 @@ class GitRepository private constructor(private val context: Context) {
                     pullCmd?.setCredentialsProvider(credentialsProvider)
                     pullCmd?.call()
 
-                    // 再度push（必要ならforce）
+                    // ★ここで必ずアプリ内容でファイルを上書きし直す
+                    file.writeText(entry.content)
+                    git?.add()?.addFilepattern(fileName)?.call()
+                    git?.commit()?.setMessage("Force overwrite entry for ${entry.date}")?.call()
+
+                    // 再度force push
                     git?.push()?.setCredentialsProvider(credentialsProvider)?.setForce(true)?.call()
-                    Log.d(TAG, "Force push completed after conflict")
+                    Log.d(TAG, "Force push completed after conflict, always using app content")
                     Result.success(true)
                 } catch (ex: Exception) {
                     Log.e(TAG, "Force push failed", ex)
