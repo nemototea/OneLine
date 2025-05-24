@@ -236,7 +236,29 @@ class GitRepository private constructor(private val context: Context) {
             val commitResult = git?.commit()?.setMessage(commitMessage)?.call()
             Log.d(TAG, "Commit completed: ${commitResult?.id?.name}")
 
-            Result.success(true)
+            try {
+                // 通常push
+                git?.push()?.setCredentialsProvider(credentialsProvider)?.call()
+                Log.d(TAG, "Push completed normally")
+                Result.success(true)
+            } catch (e: Exception) {
+                Log.w(TAG, "Push failed, trying force overwrite (ours strategy)", e)
+                try {
+                    // ours戦略でpull（常にローカルを優先）
+                    val pullCmd = git?.pull()
+                    pullCmd?.setStrategy(org.eclipse.jgit.merge.MergeStrategy.OURS)
+                    pullCmd?.setCredentialsProvider(credentialsProvider)
+                    pullCmd?.call()
+
+                    // 再度push（必要ならforce）
+                    git?.push()?.setCredentialsProvider(credentialsProvider)?.setForce(true)?.call()
+                    Log.d(TAG, "Force push completed after conflict")
+                    Result.success(true)
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Force push failed", ex)
+                    Result.failure(ex)
+                }
+            }
         } catch (e: GitAPIException) {
             Log.e(TAG, "Git API error during save", e)
             Result.failure(e)
