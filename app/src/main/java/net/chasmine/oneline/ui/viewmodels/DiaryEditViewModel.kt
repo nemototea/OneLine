@@ -73,12 +73,20 @@ class DiaryEditViewModel(application: Application, private val diaryListViewMode
                 _saveStatus.value = SaveStatus.Saving
 
                 try {
-                    val result = gitRepository.saveEntry(currentState.entry)
+                    val saveResult = gitRepository.saveEntry(currentState.entry)
 
-                    result.fold(
+                    saveResult.fold(
                         onSuccess = {
-                            _saveStatus.value = SaveStatus.Success
-                            diaryListViewModel.loadEntries() // 投稿後にリストを更新
+                            // 投稿成功後にリモートリポジトリと同期
+                            val syncResult = gitRepository.syncRepository()
+                            syncResult.fold(
+                                onSuccess = {
+                                    _saveStatus.value = SaveStatus.Success
+                                },
+                                onFailure = { e ->
+                                    _saveStatus.value = SaveStatus.Error(e.message ?: "Sync failed")
+                                }
+                            )
                         },
                         onFailure = { e ->
                             _saveStatus.value = SaveStatus.Error(e.message ?: "Save failed")
@@ -98,11 +106,20 @@ class DiaryEditViewModel(application: Application, private val diaryListViewMode
                 _saveStatus.value = SaveStatus.Saving
 
                 try {
-                    val result = gitRepository.deleteEntry(currentState.entry)
+                    val deleteResult = gitRepository.deleteEntry(currentState.entry)
 
-                    result.fold(
+                    deleteResult.fold(
                         onSuccess = {
-                            _saveStatus.value = SaveStatus.Success
+                            // 削除成功後にリモートリポジトリと同期
+                            val syncResult = gitRepository.syncRepository()
+                            syncResult.fold(
+                                onSuccess = {
+                                    _saveStatus.value = SaveStatus.Success
+                                },
+                                onFailure = { e ->
+                                    _saveStatus.value = SaveStatus.Error(e.message ?: "Sync failed")
+                                }
+                            )
                         },
                         onFailure = { e ->
                             _saveStatus.value = SaveStatus.Error(e.message ?: "Delete failed")
