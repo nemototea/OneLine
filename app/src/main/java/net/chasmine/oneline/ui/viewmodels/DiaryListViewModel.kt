@@ -31,10 +31,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     init {
         viewModelScope.launch {
             val hasSettings = settingsManager.hasValidSettings.first()
-            if (hasSettings) {
-                initializeRepository()
-                loadEntries() // リポジトリ初期化後にエントリをロード
-            }
+            if (hasSettings) syncRepository()
         }
     }
 
