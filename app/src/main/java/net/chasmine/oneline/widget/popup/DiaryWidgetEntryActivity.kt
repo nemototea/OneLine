@@ -1,6 +1,7 @@
 package net.chasmine.oneline.widget.popup
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -10,35 +11,63 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.launch
+import net.chasmine.oneline.data.preferences.SettingsManager
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class DiaryWidgetEntryActivity : ComponentActivity() {
+
+    private val TAG = "DiaryWidgetEntryActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 既存のエントリ内容と有無を取得
+        Log.d(TAG, "=== DiaryWidgetEntryActivity onCreate ===")
+
+        // ウィンドウ設定でダイアログスタイルを強制
+        window?.apply {
+            setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND,
+                android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND
+            )
+            attributes?.apply {
+                dimAmount = 0.5f
+                width = android.view.WindowManager.LayoutParams.MATCH_PARENT
+                height = android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            }
+        }
+
+        // インテントから情報を取得
         val entryContent = intent.getStringExtra("ENTRY_CONTENT") ?: ""
         val hasEntry = intent.getBooleanExtra("HAS_ENTRY", false)
+        val entryDate = intent.getStringExtra("ENTRY_DATE") ?: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val repositoryInitialized = intent.getBooleanExtra("REPOSITORY_INITIALIZED", false)
+
+        Log.d(TAG, "Activity started - hasEntry: $hasEntry, content length: ${entryContent.length}, date: $entryDate, repo initialized: $repositoryInitialized")
 
         setContent {
             OneLineTheme {
                 DiaryEntryDialog(
                     initialContent = entryContent,
                     isEditing = hasEntry,
+                    entryDate = entryDate,
+                    repositoryInitialized = repositoryInitialized,
                     onSave = { content ->
-                        saveEntry(content, hasEntry)
+                        saveEntry(content, entryDate, repositoryInitialized)
                     },
                     onDismiss = {
+                        Log.d(TAG, "Dialog dismissed")
                         finish()
                     }
                 )
@@ -46,17 +75,68 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
         }
     }
 
-    private fun saveEntry(content: String, isEditing: Boolean) {
-        val gitRepository = GitRepository.getInstance(applicationContext)
+    private fun saveEntry(content: String, dateStr: String, repositoryInitialized: Boolean) {
+        Log.d(TAG, "Saving entry for date: $dateStr, content length: ${content.length}, repo initialized: $repositoryInitialized")
 
         lifecycleScope.launch {
-            val entry = DiaryEntry(
-                date = LocalDate.now(),
-                content = content
-            )
+            try {
+                if (!repositoryInitialized) {
+                    Log.w(TAG, "Repository not initialized, attempting to initialize before save")
 
-            gitRepository.saveEntry(entry)
-            finish()
+                    // リポジトリの初期化を再試行
+                    val settingsManager = SettingsManager.getInstance(applicationContext)
+                    val gitRepository = GitRepository.getInstance(applicationContext)
+
+                    val remoteUrl = settingsManager.gitRepoUrl.first()
+                    val username = settingsManager.gitUsername.first()
+                    val password = settingsManager.gitToken.first()
+
+                    if (remoteUrl.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
+                        val initResult = gitRepository.initRepository(remoteUrl, username, password)
+                        if (initResult.isFailure) {
+                            Log.e(TAG, "Failed to initialize repository for save", initResult.exceptionOrNull())
+                            // 初期化に失敗してもローカルファイルとして保存を試行
+                        }
+                    }
+                }
+
+                val gitRepository = GitRepository.getInstance(applicationContext)
+
+                // 日付をパース
+                val date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+
+                val entry = DiaryEntry(
+                    date = date,
+                    content = content.trim()
+                )
+
+                val result = gitRepository.saveEntry(entry)
+
+                if (result.isSuccess) {
+                    Log.d(TAG, "Entry saved successfully")
+
+                    // バックグラウンドで同期を試行（失敗してもアプリは続行）
+                    if (gitRepository.isConfigValid()) {
+                        launch {
+                            try {
+                                gitRepository.syncRepository()
+                                Log.d(TAG, "Repository synced successfully")
+                            } catch (e: Exception) {
+                                Log.w(TAG, "Failed to sync repository", e)
+                            }
+                        }
+                    } else {
+                        Log.d(TAG, "Repository not valid for sync, skipping sync")
+                    }
+                } else {
+                    Log.e(TAG, "Failed to save entry", result.exceptionOrNull())
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving entry", e)
+            } finally {
+                finish()
+            }
         }
     }
 }
@@ -66,26 +146,35 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
 fun DiaryEntryDialog(
     initialContent: String,
     isEditing: Boolean,
+    entryDate: String,
+    repositoryInitialized: Boolean,
     onSave: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var content by remember { mutableStateOf(initialContent) }
-//    val focusRequester = remember { FocusRequester() }
-//    LaunchedEffect(Unit) {
-//        delay(100) // 少し遅延させてダイアログが表示された後にフォーカス
-//        focusRequester.requestFocus()
-//    }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    // ダイアログが表示されたときにテキストフィールドにフォーカスを当てる
+    LaunchedEffect(Unit) {
+        try {
+            focusRequester.requestFocus()
+        } catch (e: Exception) {
+            // フォーカス要求が失敗してもアプリは続行
+        }
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = true
+            dismissOnClickOutside = true,
+            usePlatformDefaultWidth = false
         )
     ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.9f)
                 .wrapContentHeight()
                 .shadow(8.dp, RoundedCornerShape(16.dp)),
             shape = RoundedCornerShape(16.dp),
@@ -96,9 +185,17 @@ fun DiaryEntryDialog(
                     .padding(16.dp)
                     .fillMaxWidth()
             ) {
+                // タイトルと日付を表示
                 Text(
                     text = if (isEditing) "今日の日記を編集" else "今日の一行を記録",
                     style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                Text(
+                    text = formatDateForDisplay(entryDate),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -107,9 +204,11 @@ fun DiaryEntryDialog(
                     onValueChange = { content = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp),
+                        .height(120.dp)
+                        .focusRequester(focusRequester),
                     placeholder = { Text("今日の一行を記録しましょう...") },
-                    maxLines = 4
+                    maxLines = 4,
+                    singleLine = false
                 )
 
                 Row(
@@ -119,7 +218,10 @@ fun DiaryEntryDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(
-                        onClick = onDismiss
+                        onClick = {
+                            focusManager.clearFocus()
+                            onDismiss()
+                        }
                     ) {
                         Text("キャンセル")
                     }
@@ -127,12 +229,25 @@ fun DiaryEntryDialog(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Button(
-                        onClick = { onSave(content) }
+                        onClick = {
+                            focusManager.clearFocus()
+                            onSave(content)
+                        },
+                        enabled = content.trim().isNotEmpty()
                     ) {
                         Text("保存")
                     }
                 }
             }
         }
+    }
+}
+
+private fun formatDateForDisplay(dateStr: String): String {
+    return try {
+        val date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+        date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))
+    } catch (e: Exception) {
+        dateStr
     }
 }

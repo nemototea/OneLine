@@ -56,32 +56,69 @@ class GitRepository private constructor(private val context: Context) {
         password: String
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
+            Log.d(TAG, "Starting repository initialization...")
+
+            // 既に初期化済みの場合はスキップ
+            if (isInitialized && git != null && repoDirectory?.exists() == true) {
+                Log.d(TAG, "Repository already initialized and valid")
+                return@withContext Result.success(true)
+            }
+
             repoDirectory = File(context.filesDir, "OneLine_repository")
             credentialsProvider = UsernamePasswordCredentialsProvider(username, password)
 
-            if (!repoDirectory!!.exists()) {
+            Log.d(TAG, "Repository directory: ${repoDirectory!!.absolutePath}")
+            Log.d(TAG, "Repository directory exists: ${repoDirectory!!.exists()}")
+
+            if (!repoDirectory!!.exists() || !File(repoDirectory, ".git").exists()) {
+                // .gitディレクトリがない場合は新規クローン
                 Log.d(TAG, "Cloning repository from $remoteUrl")
+
+                // 既存のディレクトリがあれば削除
+                if (repoDirectory!!.exists()) {
+                    repoDirectory!!.deleteRecursively()
+                }
                 repoDirectory!!.mkdirs()
+
                 git = Git.cloneRepository()
                     .setURI(remoteUrl)
                     .setDirectory(repoDirectory)
                     .setCredentialsProvider(credentialsProvider)
                     .call()
+
+                Log.d(TAG, "Repository cloned successfully")
             } else {
-                Log.d(TAG, "Repository already exists at $repoDirectory")
+                // 既存のリポジトリを開く
+                Log.d(TAG, "Opening existing repository at $repoDirectory")
                 git = Git.open(repoDirectory)
+
+                // 認証情報を更新
+                git?.repository?.config?.apply {
+                    setString("remote", "origin", "url", remoteUrl)
+                    save()
+                }
+
+                Log.d(TAG, "Repository opened successfully")
             }
 
             isInitialized = true
+            Log.d(TAG, "Repository initialization completed successfully")
             Result.success(true)
+
         } catch (e: GitAPIException) {
             Log.e(TAG, "Git API error during init", e)
+            isInitialized = false
+            git = null
             Result.failure(e)
         } catch (e: IOException) {
             Log.e(TAG, "IO error during init", e)
+            isInitialized = false
+            git = null
             Result.failure(e)
         } catch (e: Exception) {
             Log.e(TAG, "Error during repository init", e)
+            isInitialized = false
+            git = null
             Result.failure(e)
         }
     }
@@ -132,12 +169,23 @@ class GitRepository private constructor(private val context: Context) {
      */
     suspend fun getEntry(dateStr: String): DiaryEntry? = withContext(Dispatchers.IO) {
         try {
+            // リポジトリが初期化されていない場合はnullを返す
+            if (!isInitialized || repoDirectory == null) {
+                Log.w(TAG, "Repository not initialized when getting entry for $dateStr")
+                return@withContext null
+            }
+
             val fileName = "$dateStr.md"
             val file = File(repoDirectory, fileName)
 
-            if (file.exists()) {
+            Log.d(TAG, "Looking for entry file: ${file.absolutePath}, exists: ${file.exists()}")
+
+            if (file.exists() && file.canRead()) {
                 val content = file.readText()
                 val localDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+
+                Log.d(TAG, "Entry found for $dateStr, content length: ${content.length}")
+
                 return@withContext DiaryEntry(
                     date = localDate,
                     content = content,
@@ -145,6 +193,7 @@ class GitRepository private constructor(private val context: Context) {
                 )
             }
 
+            Log.d(TAG, "No entry found for $dateStr")
             null
         } catch (e: Exception) {
             Log.e(TAG, "Error getting entry for date $dateStr", e)
@@ -155,26 +204,37 @@ class GitRepository private constructor(private val context: Context) {
     // 日記エントリを保存
     suspend fun saveEntry(entry: DiaryEntry): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            if (!isInitialized) {
+            if (!isInitialized || git == null || repoDirectory == null) {
+                Log.e(TAG, "Repository not properly initialized")
                 return@withContext Result.failure(Exception("Repository not initialized"))
             }
 
             val fileName = entry.getFileName()
             val file = File(repoDirectory, fileName)
 
+            Log.d(TAG, "Saving entry to: ${file.absolutePath}")
+
+            // ディレクトリが存在することを確認
+            if (!repoDirectory!!.exists()) {
+                repoDirectory!!.mkdirs()
+            }
+
             // ファイルに内容を書き込み
             file.writeText(entry.content)
+
+            Log.d(TAG, "Content written to file, length: ${entry.content.length}")
 
             // Gitに変更を追加してコミット
             git?.add()?.addFilepattern(fileName)?.call()
 
-            val commitMessage = if (file.length() == 0L) {
+            val commitMessage = if (entry.content.trim().isEmpty()) {
                 "Delete entry for ${entry.date}"
             } else {
                 "Update entry for ${entry.date}"
             }
 
-            git?.commit()?.setMessage(commitMessage)?.call()
+            val commitResult = git?.commit()?.setMessage(commitMessage)?.call()
+            Log.d(TAG, "Commit completed: ${commitResult?.id?.name}")
 
             Result.success(true)
         } catch (e: GitAPIException) {
@@ -260,6 +320,13 @@ class GitRepository private constructor(private val context: Context) {
      * リポジトリの初期化状態を確認
      */
     fun isConfigValid(): Boolean {
-        return isInitialized
+        val isValid = isInitialized &&
+                git != null &&
+                repoDirectory != null &&
+                repoDirectory!!.exists() &&
+                credentialsProvider != null
+
+        Log.d(TAG, "Repository config valid: $isValid")
+        return isValid
     }
 }
