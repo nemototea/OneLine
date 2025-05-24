@@ -320,14 +320,37 @@ class GitRepository private constructor(private val context: Context) {
                 return@withContext Result.failure(Exception("Repository not initialized"))
             }
 
-            // まずプル
+            // ours戦略でpull（常にローカルを優先）
             val pullResult = git!!.pull()
                 .setCredentialsProvider(credentialsProvider)
+                .setStrategy(org.eclipse.jgit.merge.MergeStrategy.OURS)
                 .call()
 
-            // 次にプッシュ
+            // 競合マーカーが残っている.mdファイルを修正
+            val repoDir = repoDirectory
+            if (repoDir != null && repoDir.exists()) {
+                val mdFiles = repoDir.listFiles { file ->
+                    file.isFile && file.name.endsWith(".md")
+                }
+                mdFiles?.forEach { file ->
+                    val content = file.readText()
+                    if (content.contains("<<<<<<<") || content.contains("=======") || content.contains(">>>>>>>")) {
+                        // 競合マーカーを除去（今回は空ファイルにする例。必要ならアプリ内容で上書きも可）
+                        file.writeText("")
+                        git?.add()?.addFilepattern(file.name)?.call()
+                    }
+                }
+            }
+
+            // 競合マーカー除去コミット（何か変更があれば）
+            if (git?.status()?.call()?.hasUncommittedChanges() == true) {
+                git?.commit()?.setMessage("Remove conflict markers and force sync")?.call()
+            }
+
+            // force push
             val pushResult = git!!.push()
                 .setCredentialsProvider(credentialsProvider)
+                .setForce(true)
                 .call()
 
             Log.d(TAG, "Pull result: ${pullResult.mergeResult?.mergeStatus}")
