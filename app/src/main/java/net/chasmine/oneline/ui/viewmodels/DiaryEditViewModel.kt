@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class DiaryEditViewModel(application: Application, private val diaryListViewModel: DiaryListViewModel) : AndroidViewModel(application) {
+class DiaryEditViewModel(application: Application) : AndroidViewModel(application) {
 
     private val gitRepository = GitRepository.getInstance(application)
 

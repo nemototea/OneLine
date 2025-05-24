@@ -9,16 +9,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.components.DiaryForm
 import net.chasmine.oneline.ui.viewmodels.DiaryEditViewModel
-import net.chasmine.oneline.ui.viewmodels.DiaryListViewModel
-import net.chasmine.oneline.ui.viewmodels.DiaryEditViewModelFactory
 import kotlinx.coroutines.launch
 
 @Composable
 fun DiaryEditScreen(
     date: String,
     onNavigateBack: () -> Unit,
-    diaryListViewModel: DiaryListViewModel = viewModel(),
-    viewModel: DiaryEditViewModel = viewModel(factory = DiaryEditViewModelFactory(diaryListViewModel))
+    viewModel: DiaryEditViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val saveStatus by viewModel.saveStatus.collectAsState()
