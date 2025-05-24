@@ -320,6 +320,13 @@ class GitRepository private constructor(private val context: Context) {
                 return@withContext Result.failure(Exception("Repository not initialized"))
             }
 
+            // MERGING状態なら強制リセット
+            val repo = git!!.repository
+            if (repo.repositoryState.toString().contains("MERGING")) {
+                Log.w(TAG, "Repository in MERGING state, resetting hard")
+                git!!.reset().setMode(org.eclipse.jgit.api.ResetCommand.ResetType.HARD).call()
+            }
+
             // ours戦略でpull（常にローカルを優先）
             val pullResult = git!!.pull()
                 .setCredentialsProvider(credentialsProvider)
@@ -334,8 +341,7 @@ class GitRepository private constructor(private val context: Context) {
                 }
                 mdFiles?.forEach { file ->
                     val content = file.readText()
-                    if (content.contains("<<<<<<<") || content.contains("=======") || content.contains(">>>>>>>")) {
-                        // 競合マーカーを除去（今回は空ファイルにする例。必要ならアプリ内容で上書きも可）
+                    if (content.contains("<<<<<<<") || content.contains("=======" ) || content.contains(">>>>>>>")) {
                         file.writeText("")
                         git?.add()?.addFilepattern(file.name)?.call()
                     }
