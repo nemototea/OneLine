@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "OneLine"
 include(":app")
+include(":shared")
