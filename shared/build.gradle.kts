@@ -1,10 +1,12 @@
 plugins {
     kotlin("multiplatform")
+    id("com.android.library")
     id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 kotlin {
-    android()
+    androidTarget()
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -27,10 +29,11 @@ kotlin {
     }
 }
 
-compose {
-    kotlinCompilerPlugin.set("1.5.10") // 必要に応じてバージョン調整
-}
-
 android {
+    compileSdk = 34
+    defaultConfig {
+        minSdk = 24
+        targetSdk = 34
+    }
     namespace = "net.chasmine.oneline.shared"
 }
