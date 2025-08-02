@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
@@ -58,13 +59,19 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
 
         setContent {
             OneLineTheme {
+                var isDialogLoading by remember { mutableStateOf(false) }
+                
                 DiaryEntryDialog(
                     initialContent = entryContent,
                     isEditing = hasEntry,
                     entryDate = entryDate,
                     repositoryInitialized = repositoryInitialized,
+                    isLoading = isDialogLoading,
                     onSave = { content ->
-                        saveEntry(content, entryDate, repositoryInitialized)
+                        isDialogLoading = true
+                        saveEntry(content, entryDate, repositoryInitialized) {
+                            isDialogLoading = false
+                        }
                     },
                     onDismiss = {
                         Log.d(TAG, "Dialog dismissed")
@@ -75,7 +82,7 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
         }
     }
 
-    private fun saveEntry(content: String, dateStr: String, repositoryInitialized: Boolean) {
+    private fun saveEntry(content: String, dateStr: String, repositoryInitialized: Boolean, onComplete: () -> Unit = {}) {
         Log.d(TAG, "Saving entry for date: $dateStr, content length: ${content.length}, repo initialized: $repositoryInitialized")
 
         lifecycleScope.launch {
@@ -135,6 +142,7 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error saving entry", e)
             } finally {
+                onComplete() // ローディング状態をリセット
                 finish()
             }
         }
@@ -148,6 +156,7 @@ fun DiaryEntryDialog(
     isEditing: Boolean,
     entryDate: String,
     repositoryInitialized: Boolean,
+    isLoading: Boolean,
     onSave: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -165,10 +174,12 @@ fun DiaryEntryDialog(
     }
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { 
+            if (!isLoading) onDismiss() // ローディング中はダイアログを閉じられない
+        },
         properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true,
+            dismissOnBackPress = !isLoading, // ローディング中はバックボタンで閉じられない
+            dismissOnClickOutside = !isLoading, // ローディング中は外側タップで閉じられない
             usePlatformDefaultWidth = false
         )
     ) {
@@ -208,8 +219,30 @@ fun DiaryEntryDialog(
                         .focusRequester(focusRequester),
                     placeholder = { Text("今日の一行を記録しましょう...") },
                     maxLines = 4,
-                    singleLine = false
+                    singleLine = false,
+                    enabled = !isLoading // ローディング中は入力無効化
                 )
+
+                // ローディング表示
+                if (isLoading) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "保存中...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 Row(
                     modifier = Modifier
@@ -221,7 +254,8 @@ fun DiaryEntryDialog(
                         onClick = {
                             focusManager.clearFocus()
                             onDismiss()
-                        }
+                        },
+                        enabled = !isLoading // ローディング中は無効化
                     ) {
                         Text("キャンセル")
                     }
@@ -233,9 +267,17 @@ fun DiaryEntryDialog(
                             focusManager.clearFocus()
                             onSave(content)
                         },
-                        enabled = content.trim().isNotEmpty()
+                        enabled = content.trim().isNotEmpty() && !isLoading // ローディング中は無効化
                     ) {
-                        Text("保存")
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("保存")
+                        }
                     }
                 }
             }
