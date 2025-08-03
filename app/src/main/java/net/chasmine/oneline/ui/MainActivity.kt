@@ -18,6 +18,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import net.chasmine.oneline.data.git.GitRepository
+import net.chasmine.oneline.data.preferences.NotificationPreferences
+import net.chasmine.oneline.util.DiaryNotificationManager
 import net.chasmine.oneline.ui.screens.DiaryEditScreen
 import net.chasmine.oneline.ui.screens.DiaryListScreen
 import net.chasmine.oneline.ui.screens.SettingsScreen
@@ -27,6 +29,10 @@ import net.chasmine.oneline.ui.screens.DiaryEditScreen
 import net.chasmine.oneline.ui.screens.DiaryListScreen
 import net.chasmine.oneline.ui.screens.SettingsScreen
 import net.chasmine.oneline.ui.theme.OneLineTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +42,9 @@ class MainActivity : ComponentActivity() {
         val fromWidget = intent.getBooleanExtra("EXTRA_FROM_WIDGET", false)
         val openNewEntry = intent.getBooleanExtra("EXTRA_OPEN_NEW_ENTRY", false)
         val openSettings = intent?.getBooleanExtra("OPEN_SETTINGS", false) ?: false
+
+        // 通知設定を初期化
+        initializeNotifications()
 
         setContent {
             OneLineTheme {
@@ -49,6 +58,20 @@ class MainActivity : ComponentActivity() {
                         openSettings = openSettings
                     )
                 }
+            }
+        }
+    }
+
+    private fun initializeNotifications() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val notificationPrefs = NotificationPreferences.getInstance(this@MainActivity)
+            val isEnabled = notificationPrefs.isNotificationEnabled.first()
+            
+            if (isEnabled) {
+                val hour = notificationPrefs.notificationHour.first()
+                val minute = notificationPrefs.notificationMinute.first()
+                val notificationManager = DiaryNotificationManager(this@MainActivity)
+                notificationManager.scheduleDaily(hour, minute)
             }
         }
     }
