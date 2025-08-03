@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.viewmodels.SettingsViewModel
+import net.chasmine.oneline.ui.components.NotificationSettingsSection
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -265,6 +266,17 @@ fun SettingsScreen(
                             Text("まずリポジトリを検証してください")
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // 通知設定セクション
+                    Text(
+                        text = "🔔 通知設定",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    NotificationSettingsSection()
                 }
 
                 if (uiState is SettingsViewModel.UiState.Saving) {
