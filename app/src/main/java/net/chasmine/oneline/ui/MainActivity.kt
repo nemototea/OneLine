@@ -1,16 +1,17 @@
 package net.chasmine.oneline.ui
 
+import android.Manifest
 import android.app.Application
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -20,6 +21,7 @@ import androidx.navigation.navArgument
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.preferences.NotificationPreferences
 import net.chasmine.oneline.util.DiaryNotificationManager
+import net.chasmine.oneline.util.NotificationInitializer
 import net.chasmine.oneline.ui.screens.DiaryEditScreen
 import net.chasmine.oneline.ui.screens.DiaryListScreen
 import net.chasmine.oneline.ui.screens.MainSettingsScreen
@@ -27,13 +29,23 @@ import net.chasmine.oneline.ui.screens.GitSettingsScreen
 import net.chasmine.oneline.ui.screens.NotificationSettingsScreen
 import net.chasmine.oneline.ui.screens.AboutScreen
 import net.chasmine.oneline.ui.theme.OneLineTheme
-import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    
+    private lateinit var notificationInitializer: NotificationInitializer
+    
+    // 通知権限リクエスト用のランチャー
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        CoroutineScope(Dispatchers.IO).launch {
+            notificationInitializer.handlePermissionResult(isGranted)
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -42,7 +54,7 @@ class MainActivity : ComponentActivity() {
         val openNewEntry = intent.getBooleanExtra("EXTRA_OPEN_NEW_ENTRY", false)
         val openSettings = intent?.getBooleanExtra("OPEN_SETTINGS", false) ?: false
 
-        // 通知設定を初期化
+        // 通知初期化処理
         initializeNotifications()
 
         setContent {
@@ -62,15 +74,25 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initializeNotifications() {
+        notificationInitializer = NotificationInitializer(this)
+        
         CoroutineScope(Dispatchers.IO).launch {
-            val notificationPrefs = NotificationPreferences.getInstance(this@MainActivity)
-            val isEnabled = notificationPrefs.isNotificationEnabled.first()
+            val result = notificationInitializer.initializeOnAppStart()
             
-            if (isEnabled) {
-                val hour = notificationPrefs.notificationHour.first()
-                val minute = notificationPrefs.notificationMinute.first()
-                val notificationManager = DiaryNotificationManager(this@MainActivity)
-                notificationManager.scheduleDaily(hour, minute)
+            when (result) {
+                is NotificationInitializer.InitializationResult.PermissionRequired -> {
+                    // 初回起動時の権限リクエスト
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
+                is NotificationInitializer.InitializationResult.PermissionPreviouslyDenied -> {
+                    // 以前に権限を拒否された場合は、設定画面で案内
+                    // ここでは何もしない（設定画面で案内）
+                }
+                else -> {
+                    // その他のケースは既に適切に処理済み
+                }
             }
         }
     }
