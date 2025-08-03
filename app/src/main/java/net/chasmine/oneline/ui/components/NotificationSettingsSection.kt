@@ -169,6 +169,26 @@ fun NotificationSettingsSection() {
                     }
                 }
             }
+            
+            // テスト通知ボタン（デバッグ用）
+            if (isNotificationEnabled) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+                
+                Button(
+                    onClick = {
+                        notificationManager.showTestNotification()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("🧪 テスト通知を送信")
+                }
+            }
         }
     }
     
