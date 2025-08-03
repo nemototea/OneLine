@@ -77,7 +77,7 @@ fun DiaryForm(
                 onValueChange = onContentChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .height(200.dp),
                 placeholder = { Text("今日の一行を記録しましょう...") },
                 label = { Text("きょうの一行") },
                 maxLines = 10
