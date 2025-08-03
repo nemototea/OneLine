@@ -21,14 +21,17 @@ class NotificationPreferences private constructor(context: Context) {
         private const val KEY_NOTIFICATION_ENABLED = "notification_enabled"
         private const val KEY_NOTIFICATION_HOUR = "notification_hour"
         private const val KEY_NOTIFICATION_MINUTE = "notification_minute"
+        private const val KEY_FIRST_LAUNCH = "first_launch"
+        private const val KEY_PERMISSION_REQUESTED = "permission_requested"
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     
-    private val _isNotificationEnabled = MutableStateFlow(prefs.getBoolean(KEY_NOTIFICATION_ENABLED, false))
+    // デフォルト値を変更：初回はON、時刻は18:00
+    private val _isNotificationEnabled = MutableStateFlow(prefs.getBoolean(KEY_NOTIFICATION_ENABLED, true))
     val isNotificationEnabled: StateFlow<Boolean> = _isNotificationEnabled
     
-    private val _notificationHour = MutableStateFlow(prefs.getInt(KEY_NOTIFICATION_HOUR, 20))
+    private val _notificationHour = MutableStateFlow(prefs.getInt(KEY_NOTIFICATION_HOUR, 18))
     val notificationHour: StateFlow<Int> = _notificationHour
     
     private val _notificationMinute = MutableStateFlow(prefs.getInt(KEY_NOTIFICATION_MINUTE, 0))
@@ -46,5 +49,23 @@ class NotificationPreferences private constructor(context: Context) {
             .apply()
         _notificationHour.value = hour
         _notificationMinute.value = minute
+    }
+    
+    // 初回起動チェック
+    fun isFirstLaunch(): Boolean {
+        return prefs.getBoolean(KEY_FIRST_LAUNCH, true)
+    }
+    
+    fun setFirstLaunchCompleted() {
+        prefs.edit().putBoolean(KEY_FIRST_LAUNCH, false).apply()
+    }
+    
+    // 権限リクエスト履歴
+    fun isPermissionRequested(): Boolean {
+        return prefs.getBoolean(KEY_PERMISSION_REQUESTED, false)
+    }
+    
+    fun setPermissionRequested() {
+        prefs.edit().putBoolean(KEY_PERMISSION_REQUESTED, true).apply()
     }
 }
