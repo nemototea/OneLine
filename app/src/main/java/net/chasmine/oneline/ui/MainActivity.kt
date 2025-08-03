@@ -22,12 +22,11 @@ import net.chasmine.oneline.data.preferences.NotificationPreferences
 import net.chasmine.oneline.util.DiaryNotificationManager
 import net.chasmine.oneline.ui.screens.DiaryEditScreen
 import net.chasmine.oneline.ui.screens.DiaryListScreen
-import net.chasmine.oneline.ui.screens.SettingsScreen
+import net.chasmine.oneline.ui.screens.MainSettingsScreen
+import net.chasmine.oneline.ui.screens.GitSettingsScreen
+import net.chasmine.oneline.ui.screens.NotificationSettingsScreen
+import net.chasmine.oneline.ui.screens.AboutScreen
 import net.chasmine.oneline.ui.theme.OneLineTheme
-import androidx.navigation.navArgument
-import net.chasmine.oneline.ui.screens.DiaryEditScreen
-import net.chasmine.oneline.ui.screens.DiaryListScreen
-import net.chasmine.oneline.ui.screens.SettingsScreen
 import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -179,7 +178,28 @@ fun OneLineApp(
         }
 
         composable("settings") {
-            SettingsScreen(
+            MainSettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToGitSettings = { navController.navigate("git_settings") },
+                onNavigateToNotificationSettings = { navController.navigate("notification_settings") },
+                onNavigateToAbout = { navController.navigate("about") }
+            )
+        }
+
+        composable("git_settings") {
+            GitSettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("notification_settings") {
+            NotificationSettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("about") {
+            AboutScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
