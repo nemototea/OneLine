@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,7 @@ class SettingsManager(private val context: Context) {
     private val gitRepoUrlKey = stringPreferencesKey("git_repo_url")
     private val gitUsernameKey = stringPreferencesKey("git_username")
     private val gitTokenKey = stringPreferencesKey("git_token")
+    private val localOnlyModeKey = booleanPreferencesKey("local_only_mode")
 
     // Git設定を保存
     suspend fun saveGitSettings(repoUrl: String, username: String, token: String) {
@@ -29,6 +31,21 @@ class SettingsManager(private val context: Context) {
             preferences[gitRepoUrlKey] = repoUrl
             preferences[gitUsernameKey] = username
             preferences[gitTokenKey] = token
+            // Git設定を保存する際はローカルオンリーモードを無効にする
+            preferences[localOnlyModeKey] = false
+        }
+    }
+    
+    // ローカルオンリーモードの設定
+    suspend fun setLocalOnlyMode(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[localOnlyModeKey] = enabled
+            // ローカルオンリーモードを有効にする場合、Git設定をクリア
+            if (enabled) {
+                preferences.remove(gitRepoUrlKey)
+                preferences.remove(gitUsernameKey)
+                preferences.remove(gitTokenKey)
+            }
         }
     }
 
@@ -44,14 +61,26 @@ class SettingsManager(private val context: Context) {
     val gitToken: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[gitTokenKey] ?: ""
     }
+    
+    // ローカルオンリーモードの状態
+    val isLocalOnlyMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[localOnlyModeKey] ?: false
+    }
 
-    // 設定が有効かどうかをチェック（全項目が空でない）
+    // 設定が有効かどうかをチェック（ローカルオンリーモードまたはGit設定が完了）
     val hasValidSettings: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        val repoUrl = preferences[gitRepoUrlKey] ?: ""
-        val username = preferences[gitUsernameKey] ?: ""
-        val token = preferences[gitTokenKey] ?: ""
+        val isLocalOnly = preferences[localOnlyModeKey] ?: false
+        if (isLocalOnly) {
+            // ローカルオンリーモードの場合は常に有効
+            true
+        } else {
+            // Git連携モードの場合は全項目が必要
+            val repoUrl = preferences[gitRepoUrlKey] ?: ""
+            val username = preferences[gitUsernameKey] ?: ""
+            val token = preferences[gitTokenKey] ?: ""
 
-        repoUrl.isNotBlank() && username.isNotBlank() && token.isNotBlank()
+            repoUrl.isNotBlank() && username.isNotBlank() && token.isNotBlank()
+        }
     }
 
     companion object {

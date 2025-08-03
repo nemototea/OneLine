@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import net.chasmine.oneline.data.git.GitRepository
+import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.preferences.SettingsManager
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,7 @@ import java.time.LocalDate
 
 class DiaryListViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val gitRepository = GitRepository.getInstance(application)
+    private val repositoryManager = RepositoryManager.getInstance(application)
     private val settingsManager = SettingsManager.getInstance(application)
 
     private val _isLoading = MutableStateFlow(false)
@@ -33,14 +34,17 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         viewModelScope.launch {
-            val hasSettings = settingsManager.hasValidSettings.first()
+            // リポジトリを初期化
+            repositoryManager.initialize()
+            
+            val hasSettings = repositoryManager.hasValidSettings()
             if (hasSettings) syncRepository()
         }
     }
 
     fun loadEntries() {
         viewModelScope.launch {
-            gitRepository.getAllEntries().collect { diaryEntries ->
+            repositoryManager.getAllEntries().collect { diaryEntries ->
                 _entries.value = diaryEntries
                 
                 // 今日の日記をチェック
@@ -62,12 +66,15 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val today = LocalDate.now()
                 val entry = DiaryEntry(date = today, content = content)
-                gitRepository.saveEntry(entry)
+                val success = repositoryManager.saveEntry(entry)
                 
-                // エントリーを再読み込み
-                loadEntries()
-                
-                Log.d("DiaryListViewModel", "Today's entry saved: $content")
+                if (success) {
+                    // エントリーを再読み込み
+                    loadEntries()
+                    Log.d("DiaryListViewModel", "Today's entry saved: $content")
+                } else {
+                    Log.e("DiaryListViewModel", "Failed to save today's entry")
+                }
             } catch (e: Exception) {
                 Log.e("DiaryListViewModel", "Failed to save today's entry", e)
             }
@@ -77,15 +84,12 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     private suspend fun initializeRepository() {
         _isLoading.value = true
         try {
-            val repoUrl = settingsManager.gitRepoUrl.first()
-            val username = settingsManager.gitUsername.first()
-            val token = settingsManager.gitToken.first()
-
-            if (repoUrl.isNotBlank() && username.isNotBlank() && token.isNotBlank()) {
-                gitRepository.initRepository(repoUrl, username, token)
+            val success = repositoryManager.initialize()
+            if (!success) {
+                _syncStatus.value = SyncStatus.Error("リポジトリの初期化に失敗しました")
             }
         } catch (e: Exception) {
-            _syncStatus.value = SyncStatus.Error(e.message ?: "Repository initialization failed")
+            _syncStatus.value = SyncStatus.Error(e.message ?: "リポジトリの初期化に失敗しました")
         } finally {
             _isLoading.value = false
         }
@@ -96,23 +100,15 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
             _syncStatus.value = SyncStatus.Syncing
 
             try {
-                if (!gitRepository.isConfigValid()) {
-                    initializeRepository()
+                val success = repositoryManager.syncRepository()
+                if (success) {
+                    _syncStatus.value = SyncStatus.Success
+                    loadEntries() // 同期成功後にエントリを再ロード
+                } else {
+                    _syncStatus.value = SyncStatus.Error("同期に失敗しました")
                 }
-
-                val result = gitRepository.syncRepository()
-
-                result.fold(
-                    onSuccess = {
-                        _syncStatus.value = SyncStatus.Success
-                        loadEntries() // 同期成功後にエントリを再ロード
-                    },
-                    onFailure = { e ->
-                        _syncStatus.value = SyncStatus.Error(e.message ?: "Sync failed")
-                    }
-                )
             } catch (e: Exception) {
-                _syncStatus.value = SyncStatus.Error(e.message ?: "Sync failed")
+                _syncStatus.value = SyncStatus.Error(e.message ?: "同期に失敗しました")
             }
         }
     }

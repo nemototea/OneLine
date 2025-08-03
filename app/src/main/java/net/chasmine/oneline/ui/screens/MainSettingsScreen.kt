@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MainSettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToDataStorage: () -> Unit,
     onNavigateToGitSettings: () -> Unit,
     onNavigateToNotificationSettings: () -> Unit,
     onNavigateToAbout: () -> Unit
@@ -50,7 +51,13 @@ fun MainSettingsScreen(
                 SettingsSection(title = "データ管理") {
                     SettingsItem(
                         icon = Icons.Default.Sync,
-                        title = "データ同期設定",
+                        title = "データ保存設定",
+                        subtitle = "ローカル保存またはGit連携",
+                        onClick = onNavigateToDataStorage
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Sync,
+                        title = "Git連携設定",
                         subtitle = "GitHubリポジトリとの同期設定",
                         onClick = onNavigateToGitSettings
                     )
