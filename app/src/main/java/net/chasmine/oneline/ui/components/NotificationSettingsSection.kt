@@ -47,31 +47,41 @@ fun NotificationSettingsSection() {
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(20.dp), // カード内の余白を増加
+            verticalArrangement = Arrangement.spacedBy(20.dp) // 要素間の余白を増加
         ) {
             // 通知ON/OFF設定
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 16.dp) // Switchとの間に適切な余白を確保
+                ) {
                     Text(
                         text = "日記リマインダー",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                     Text(
                         text = "毎日決まった時間に日記を書くリマインダーを受け取る",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight
                     )
                 }
+                
+                // Switchを上部に配置し、テキストとの干渉を防ぐ
                 Switch(
                     checked = isNotificationEnabled,
+                    modifier = Modifier.padding(top = 4.dp), // タイトルと高さを合わせる
                     onCheckedChange = { enabled ->
                         if (enabled) {
                             // 通知権限をチェック
@@ -102,7 +112,10 @@ fun NotificationSettingsSection() {
             
             // 時間設定
             if (isNotificationEnabled) {
-                Divider()
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
                 
                 Row(
                     modifier = Modifier
@@ -120,14 +133,19 @@ fun NotificationSettingsSection() {
                                 true
                             ).show()
                         }
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 12.dp), // より適切な縦方向の余白
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 16.dp) // 時刻表示との間に余白を確保
+                    ) {
                         Text(
                             text = "通知時刻",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
                         Text(
                             text = "タップして時刻を変更",
@@ -135,11 +153,20 @@ fun NotificationSettingsSection() {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Text(
-                        text = String.format("%02d:%02d", notificationHour, notificationMinute),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    
+                    // 時刻表示を見やすくする
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Text(
+                            text = String.format("%02d:%02d", notificationHour, notificationMinute),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        )
+                    }
                 }
             }
         }
