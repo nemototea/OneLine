@@ -21,13 +21,14 @@ import java.util.*
 @Composable
 fun DiaryCard(
     entry: DiaryEntry,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val dayFormatter = DateTimeFormatter.ofPattern("dd")
     val monthYearFormatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.ENGLISH)
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
