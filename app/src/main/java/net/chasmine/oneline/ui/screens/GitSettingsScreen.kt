@@ -10,10 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.viewmodels.SettingsViewModel
+import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.repository.RepositoryManager
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,8 +25,14 @@ fun GitSettingsScreen(
     onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val repositoryManager = remember { RepositoryManager.getInstance(context) }
+
+    // ローカルモード状態の監視
+    val isLocalOnlyMode by settingsManager.isLocalOnlyMode.collectAsState(initial = false)
 
     var repoUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -33,6 +42,8 @@ fun GitSettingsScreen(
     var showErrorDialog by remember { mutableStateOf(false) }
     var showRepositoryChangeDialog by remember { mutableStateOf(false) }
     var showMigrationOptionsDialog by remember { mutableStateOf(false) }
+    var showLocalToGitMigrationDialog by remember { mutableStateOf(false) }
+    var migrationInProgress by remember { mutableStateOf(false) }
     var localDiaryCount by remember { mutableStateOf(0) }
     var showValidationDialog by remember { mutableStateOf(false) }
     var showCreateRepoHelpDialog by remember { mutableStateOf(false) }
@@ -236,10 +247,15 @@ fun GitSettingsScreen(
                                 (uiState as SettingsViewModel.UiState.Loaded).repoUrl
                             } else ""
                             
-                            if (currentRepoUrl.isNotEmpty() && currentRepoUrl != repoUrl) {
+                            if (isLocalOnlyMode) {
+                                // ローカルモードからGit連携への移行
+                                showLocalToGitMigrationDialog = true
+                            } else if (currentRepoUrl.isNotEmpty() && currentRepoUrl != repoUrl) {
+                                // 既存のGit設定の変更
                                 pendingRepoUrl = repoUrl
                                 showRepositoryChangeDialog = true
                             } else {
+                                // 通常の保存処理
                                 scope.launch {
                                     viewModel.saveSettings(repoUrl, username, token)
                                 }
@@ -249,7 +265,11 @@ fun GitSettingsScreen(
                         enabled = isValidationPassed && uiState !is SettingsViewModel.UiState.Saving
                     ) {
                         if (isValidationPassed) {
-                            Text("設定を保存する")
+                            if (isLocalOnlyMode) {
+                                Text("ローカルデータをGit連携に移行")
+                            } else {
+                                Text("設定を保存する")
+                            }
                         } else {
                             Text("まずリポジトリを検証してください")
                         }
@@ -333,6 +353,82 @@ fun GitSettingsScreen(
                         Text("閉じる")
                     }
                 }
+            )
+        }
+        
+        // ローカルからGitへの移行確認ダイアログ
+        if (showLocalToGitMigrationDialog) {
+            AlertDialog(
+                onDismissRequest = { showLocalToGitMigrationDialog = false },
+                title = { Text("Git連携に移行") },
+                text = {
+                    Column {
+                        Text("ローカル保存からGit連携に移行しますか？")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "• 既存のローカルデータはGitリポジトリにコピーされます\n• 今後はGitリポジトリで自動バックアップされます\n• 複数端末での同期が可能になります",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLocalToGitMigrationDialog = false
+                            migrationInProgress = true
+                            scope.launch {
+                                try {
+                                    // まずGit設定を保存
+                                    viewModel.saveSettings(repoUrl, username, token)
+                                    
+                                    // ローカルからGitへの移行を実行
+                                    val result = repositoryManager.migrateToGitMode()
+                                    
+                                    when (result) {
+                                        is RepositoryManager.MigrationResult.Success -> {
+                                            showSuccessDialog = true
+                                        }
+                                        else -> {
+                                            errorMessage = result.getErrorMessage()
+                                            showErrorDialog = true
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    errorMessage = "移行中にエラーが発生しました: ${e.message}"
+                                    showErrorDialog = true
+                                } finally {
+                                    migrationInProgress = false
+                                }
+                            }
+                        },
+                        enabled = !migrationInProgress
+                    ) {
+                        Text("移行する")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLocalToGitMigrationDialog = false }) {
+                        Text("キャンセル")
+                    }
+                }
+            )
+        }
+        
+        // 移行中ダイアログ
+        if (migrationInProgress) {
+            AlertDialog(
+                onDismissRequest = { },
+                title = { Text("移行中...") },
+                text = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        Text("ローカルデータをGitリポジトリに移行しています")
+                    }
+                },
+                confirmButton = { }
             )
         }
         

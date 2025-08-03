@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,15 +20,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import net.chasmine.oneline.data.git.GitRepository
-import net.chasmine.oneline.data.preferences.NotificationPreferences
+import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.util.DiaryNotificationManager
 import net.chasmine.oneline.util.NotificationInitializer
 import net.chasmine.oneline.ui.screens.DiaryEditScreen
 import net.chasmine.oneline.ui.screens.DiaryListScreen
 import net.chasmine.oneline.ui.screens.MainSettingsScreen
+import net.chasmine.oneline.ui.screens.DataStorageSettingsScreen
 import net.chasmine.oneline.ui.screens.GitSettingsScreen
 import net.chasmine.oneline.ui.screens.NotificationSettingsScreen
 import net.chasmine.oneline.ui.screens.AboutScreen
+import net.chasmine.oneline.ui.screens.WelcomeScreen
 import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -107,14 +111,29 @@ fun OneLineApp(
     val navController = rememberNavController()
     val context = LocalContext.current
     val gitRepository = GitRepository.getInstance(context.applicationContext as Application)
+    val repositoryManager = remember { RepositoryManager.getInstance(context) }
+    val scope = rememberCoroutineScope()
     var showGitConfigDialog by remember { mutableStateOf(false) }
+    
+    // 初回起動判定
+    var isFirstLaunch by remember { mutableStateOf(true) }
+    var hasValidSettings by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        hasValidSettings = repositoryManager.hasValidSettings()
+        isFirstLaunch = !hasValidSettings
+    }
 
     // Git設定チェック関数
     fun checkGitConfigAndNavigate(onConfigured: () -> Unit) {
-        if (gitRepository.isConfigValid()) {
-            onConfigured()
-        } else {
-            showGitConfigDialog = true
+        scope.launch {
+            val repositoryManager = RepositoryManager.getInstance(context)
+            val hasValidSettings = repositoryManager.hasValidSettings()
+            if (hasValidSettings) {
+                onConfigured()
+            } else {
+                showGitConfigDialog = true
+            }
         }
     }
 
@@ -122,31 +141,65 @@ fun OneLineApp(
     if (showGitConfigDialog) {
         AlertDialog(
             onDismissRequest = { showGitConfigDialog = false },
-            title = { Text("Git設定が必要です") },
+            title = { Text("データ保存方法を選択してください") },
             text = {
                 Column {
-                    Text("日記を投稿するには、まずGitリポジトリの設定が必要です。")
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("日記を投稿するには、データの保存方法を選択する必要があります。")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
                     Text(
-                        text = "設定画面でGitHubリポジトリの情報を入力してください。",
-                        style = MaterialTheme.typography.bodySmall
+                        text = "📱 ローカル保存のみ",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "• 端末内にのみ保存\n• 設定不要ですぐに使用可能\n• バックアップや同期は手動",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 8.dp, bottom = 12.dp)
+                    )
+                    
+                    Text(
+                        text = "☁️ Git連携",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "• クラウドで自動バックアップ\n• 複数端末での同期が可能\n• GitHubなどの設定が必要",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showGitConfigDialog = false
-                        navController.navigate("settings")
-                    }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("設定画面へ")
+                    TextButton(
+                        onClick = {
+                            scope.launch {
+                                val settingsManager = SettingsManager.getInstance(context)
+                                settingsManager.setLocalOnlyMode(true)
+                                showGitConfigDialog = false
+                                // ローカルモードで新規作成画面に遷移
+                                navController.navigate("diary_edit/new")
+                            }
+                        }
+                    ) {
+                        Text("📱 ローカル保存")
+                    }
+                    
+                    TextButton(
+                        onClick = {
+                            showGitConfigDialog = false
+                            navController.navigate("git_settings")
+                        }
+                    ) {
+                        Text("☁️ Git設定")
+                    }
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showGitConfigDialog = false }
-                ) {
+                TextButton(onClick = { showGitConfigDialog = false }) {
                     Text("キャンセル")
                 }
             }
@@ -169,7 +222,25 @@ fun OneLineApp(
         }
     }
 
-    NavHost(navController = navController, startDestination = "diary_list") {
+    NavHost(
+        navController = navController, 
+        startDestination = if (isFirstLaunch && !fromWidget) "welcome" else "diary_list"
+    ) {
+        composable("welcome") {
+            WelcomeScreen(
+                onLocalModeSelected = {
+                    navController.navigate("diary_list") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
+                },
+                onGitModeSelected = {
+                    navController.navigate("git_settings") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
+                }
+            )
+        }
+        
         composable("diary_list") {
             DiaryListScreen(
                 onNavigateToSettings = { navController.navigate("settings") },
@@ -202,9 +273,17 @@ fun OneLineApp(
         composable("settings") {
             MainSettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToDataStorage = { navController.navigate("data_storage_settings") },
                 onNavigateToGitSettings = { navController.navigate("git_settings") },
                 onNavigateToNotificationSettings = { navController.navigate("notification_settings") },
                 onNavigateToAbout = { navController.navigate("about") }
+            )
+        }
+
+        composable("data_storage_settings") {
+            DataStorageSettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToGitSettings = { navController.navigate("git_settings") }
             )
         }
 
