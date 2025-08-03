@@ -28,6 +28,9 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     private val _entries = MutableStateFlow<List<DiaryEntry>>(emptyList())
     val entries: StateFlow<List<DiaryEntry>> = _entries
 
+    private val _todayEntry = MutableStateFlow<DiaryEntry?>(null)
+    val todayEntry: StateFlow<DiaryEntry?> = _todayEntry
+
     init {
         viewModelScope.launch {
             val hasSettings = settingsManager.hasValidSettings.first()
@@ -39,7 +42,34 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             gitRepository.getAllEntries().collect { diaryEntries ->
                 _entries.value = diaryEntries
+                
+                // 今日の日記をチェック
+                val today = LocalDate.now()
+                val todayEntryFound = diaryEntries.find { it.date == today }
+                _todayEntry.value = todayEntryFound
+                
                 Log.d("DiaryListViewModel", "Loaded entries: ${diaryEntries.size}") // デバッグ用ログ
+                Log.d("DiaryListViewModel", "Today's entry: ${todayEntryFound?.content ?: "None"}")
+            }
+        }
+    }
+    
+    /**
+     * 今日の日記を保存
+     */
+    fun saveTodayEntry(content: String) {
+        viewModelScope.launch {
+            try {
+                val today = LocalDate.now()
+                val entry = DiaryEntry(date = today, content = content)
+                gitRepository.saveEntry(entry)
+                
+                // エントリーを再読み込み
+                loadEntries()
+                
+                Log.d("DiaryListViewModel", "Today's entry saved: $content")
+            } catch (e: Exception) {
+                Log.e("DiaryListViewModel", "Failed to save today's entry", e)
             }
         }
     }
