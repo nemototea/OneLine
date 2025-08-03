@@ -16,8 +16,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.components.DiaryCard
+import net.chasmine.oneline.ui.components.TodayEntryForm
+import net.chasmine.oneline.ui.components.TodayEntryCard
 import net.chasmine.oneline.ui.viewmodels.DiaryListViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +31,7 @@ fun DiaryListScreen(
     viewModel: DiaryListViewModel = viewModel()
 ) {
     val entries by viewModel.entries.collectAsState(initial = emptyList())
+    val todayEntry by viewModel.todayEntry.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
     val scope = rememberCoroutineScope()
@@ -173,14 +177,43 @@ fun DiaryListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(entries) { entry ->
+                    // 今日の日記の処理
+                    if (todayEntry == null) {
+                        // 今日の日記が存在しない場合は入力フォームを表示
+                        item {
+                            TodayEntryForm(
+                                onSave = { content ->
+                                    viewModel.saveTodayEntry(content)
+                                },
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+                    } else {
+                        // 今日の日記が存在する場合は特別なカードを表示
+                        item {
+                            todayEntry?.let { entry ->
+                                TodayEntryCard(
+                                    entry = entry,
+                                    onClick = {
+                                        onNavigateToEdit(entry.date.toString())
+                                    },
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
+                        }
+                    }
+                    
+                    // 今日以外の日記エントリー
+                    items(entries.filter { it.date != LocalDate.now() }) { entry ->
                         DiaryCard(
                             entry = entry,
                             onClick = {
                                 onNavigateToEdit(entry.date.toString())
-                            }
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
                 }
