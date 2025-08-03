@@ -30,11 +30,29 @@ fun NotificationSettingsSection() {
     val notificationMinute by notificationPrefs.notificationMinute.collectAsState()
     
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var showPermissionDeniedInfo by remember { mutableStateOf(false) }
+    
+    // 権限状態をチェック
+    val hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
+    }
+    
+    // 権限が拒否されている場合の表示判定
+    LaunchedEffect(isNotificationEnabled, hasPermission) {
+        showPermissionDeniedInfo = isNotificationEnabled && !hasPermission && 
+                notificationPrefs.isPermissionRequested()
+    }
     
     // 通知権限のリクエスト
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
+        notificationPrefs.setPermissionRequested()
         if (isGranted) {
             notificationPrefs.setNotificationEnabled(true)
             notificationManager.scheduleDaily(notificationHour, notificationMinute)
@@ -54,6 +72,48 @@ fun NotificationSettingsSection() {
             modifier = Modifier.padding(20.dp), // カード内の余白を増加
             verticalArrangement = Arrangement.spacedBy(20.dp) // 要素間の余白を増加
         ) {
+            // 権限拒否時の案内
+            if (showPermissionDeniedInfo) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "⚠️ 通知権限が必要です",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Text(
+                            text = "日記リマインダーを受け取るには、端末の設定から通知権限を有効にしてください。",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Button(
+                            onClick = {
+                                // 設定アプリを開く
+                                val intent = android.content.Intent().apply {
+                                    action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                                    data = android.net.Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("設定アプリを開く")
+                        }
+                    }
+                }
+            }
+            
             // 通知ON/OFF設定
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -167,6 +227,26 @@ fun NotificationSettingsSection() {
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                         )
                     }
+                }
+            }
+            
+            // テスト通知ボタン（デバッグ用）
+            if (isNotificationEnabled) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+                
+                Button(
+                    onClick = {
+                        notificationManager.showTestNotification()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("🧪 テスト通知を送信")
                 }
             }
         }
