@@ -76,7 +76,13 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
+    // Testing dependencies
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:5.5.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.5.0")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -110,4 +116,46 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
 
+}
+
+// カスタムテストタスク
+tasks.register("runAllTests") {
+    description = "Run all unit tests and integration tests"
+    group = "verification"
+    dependsOn("test")
+}
+
+tasks.register("runUnitTests") {
+    description = "Run only unit tests"
+    group = "verification"
+    dependsOn("testDebugUnitTest")
+}
+
+tasks.register("runIntegrationTests") {
+    description = "Run only integration tests"
+    group = "verification"
+    dependsOn("testDebugUnitTest")
+}
+
+tasks.register("runUITests") {
+    description = "Run UI tests (requires connected device)"
+    group = "verification"
+    dependsOn("connectedDebugAndroidTest")
+}
+
+tasks.register("testWithCoverage") {
+    description = "Run tests with coverage report"
+    group = "verification"
+    dependsOn("testDebugUnitTest")
+    finalizedBy("jacocoTestReport")
+}
+
+// テストレポートの設定
+tasks.withType<Test> {
+    useJUnit()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = false
+    }
 }
