@@ -278,7 +278,7 @@ fun GitSettingsScreen(
                     Text(
                         text = "※ Gitリポジトリへのアクセスには、GitHubなどのアクセストークンが必要です。",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -462,7 +462,7 @@ fun GitSettingsScreen(
                         Text(
                             text = "保存中...",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                 }

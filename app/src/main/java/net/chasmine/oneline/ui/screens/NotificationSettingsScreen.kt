@@ -87,7 +87,7 @@ fun NotificationSettingsScreen(
                     Text(
                         text = "• Android 13以降では通知権限の許可が必要です\n• バッテリー最適化の設定により通知が遅延する場合があります\n• 端末の省電力モードでは通知が制限される場合があります",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight
                     )
                 }

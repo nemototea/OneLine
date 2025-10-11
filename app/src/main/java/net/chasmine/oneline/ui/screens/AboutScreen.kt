@@ -72,7 +72,7 @@ fun AboutScreen(
             Text(
                 text = "バージョン 1.0.0",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -187,7 +187,7 @@ fun AboutScreen(
             Text(
                 text = "© 2024 OneLine\nMade with ❤️ in Japan",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center
             )
         }
