@@ -40,5 +40,5 @@ val LightOutline = Color(0xFFE5E7EB)           // 薄いグレー - 境界線
 val DarkOutline = Color(0xFF4B5563)            // 中間グレー - ダークモードの境界線
 
 // 無効状態
-val LightOnSurfaceVariant = Color(0xFF9CA3AF) // グレー - 無効化されたテキスト
-val DarkOnSurfaceVariant = Color(0xFF6B7280)  // ダークグレー - 無効化されたテキスト
+val LightOnSurfaceVariant = Color(0xFF6B7280) // グレー - 無効化されたテキスト
+val DarkOnSurfaceVariant = Color(0xFF9CA3AF)  // ダークグレー - 無効化されたテキスト
