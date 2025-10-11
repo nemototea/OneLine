@@ -19,6 +19,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.data.preferences.SettingsManager
@@ -233,7 +235,31 @@ fun OneLineApp(
 
     NavHost(
         navController = navController, 
-        startDestination = if (isFirstLaunch && !fromWidget) "welcome" else "diary_list"
+        startDestination = if (isFirstLaunch && !fromWidget) "welcome" else "diary_list",
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        }
     ) {
         composable("welcome") {
             WelcomeScreen(
