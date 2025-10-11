@@ -206,7 +206,7 @@ fun DiaryEntryDialog(
                 Text(
                     text = formatDateForDisplay(entryDate),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -239,7 +239,7 @@ fun DiaryEntryDialog(
                         Text(
                             text = "保存中...",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                 }
