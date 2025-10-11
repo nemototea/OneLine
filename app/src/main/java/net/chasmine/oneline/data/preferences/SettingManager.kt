@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import net.chasmine.oneline.ui.theme.ThemeMode
 
 // DataStoreのシングルトンインスタンスを作成
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -24,6 +25,7 @@ class SettingsManager(private val context: Context) {
     private val gitUsernameKey = stringPreferencesKey("git_username")
     private val gitTokenKey = stringPreferencesKey("git_token")
     private val localOnlyModeKey = booleanPreferencesKey("local_only_mode")
+    private val themeModeKey = stringPreferencesKey("theme_mode")
 
     // Git設定を保存
     suspend fun saveGitSettings(repoUrl: String, username: String, token: String) {
@@ -49,6 +51,13 @@ class SettingsManager(private val context: Context) {
         }
     }
 
+    // テーマモードの設定
+    suspend fun setThemeMode(themeMode: ThemeMode) {
+        context.dataStore.edit { preferences ->
+            preferences[themeModeKey] = themeMode.name
+        }
+    }
+
     // Git設定の各項目をFlowとして取得
     val gitRepoUrl: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[gitRepoUrlKey] ?: ""
@@ -65,6 +74,16 @@ class SettingsManager(private val context: Context) {
     // ローカルオンリーモードの状態
     val isLocalOnlyMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[localOnlyModeKey] ?: false
+    }
+
+    // テーマモードの取得
+    val themeMode: Flow<ThemeMode> = context.dataStore.data.map { preferences ->
+        val themeName = preferences[themeModeKey] ?: ThemeMode.SYSTEM.name
+        try {
+            ThemeMode.valueOf(themeName)
+        } catch (e: IllegalArgumentException) {
+            ThemeMode.SYSTEM
+        }
     }
 
     // 設定が有効かどうかをチェック（ローカルオンリーモードまたはGit設定が完了）

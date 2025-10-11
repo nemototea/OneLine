@@ -53,7 +53,7 @@ fun TodayEntryCard(
                     Text(
                         text = formattedDate,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
                 

@@ -81,7 +81,7 @@ fun TodayEntryForm(
                     Text(
                         text = formattedDate,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
                 
@@ -173,7 +173,7 @@ fun TodayEntryForm(
                     Text(
                         text = "💡 Enterキーまたは送信ボタンで保存",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     
                     if (text.isNotEmpty()) {
@@ -193,7 +193,7 @@ fun TodayEntryForm(
                 Text(
                     text = "📝 タップして今日の出来事を記録しましょう",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         }
