@@ -202,7 +202,7 @@ private fun TutorialPageContent(page: TutorialPage) {
             text = page.description,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -265,7 +265,7 @@ private fun DataStorageSelectionPage(
                 text = "データの保存方法を選択してください",
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
         }
 
@@ -310,7 +310,7 @@ private fun DataStorageSelectionPage(
                             Text(
                                 text = "端末内にのみ保存（推奨）",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         }
                     }
@@ -349,7 +349,7 @@ private fun DataStorageSelectionPage(
                         Icon(
                             imageVector = Icons.Default.Cloud,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.size(32.dp)
                         )
                         
@@ -362,7 +362,7 @@ private fun DataStorageSelectionPage(
                             Text(
                                 text = "クラウドで自動バックアップ",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         }
                     }
@@ -376,7 +376,7 @@ private fun DataStorageSelectionPage(
                     Text(
                         text = "※ GitHubアカウントと設定が必要です",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.padding(start = 44.dp)
                     )
                 }
