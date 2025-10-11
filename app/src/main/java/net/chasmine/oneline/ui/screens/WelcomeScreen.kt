@@ -82,11 +82,30 @@ fun WelcomeScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        // ページコンテンツ
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f)
+        ) { page ->
+            if (page < tutorialPages.size) {
+                // チュートリアルページ
+                TutorialPageContent(tutorialPages[page])
+            } else {
+                // データ保存方法選択ページ
+                DataStorageSelectionPage(
+                    onLocalModeSelected = onLocalModeSelected,
+                    onGitModeSelected = onGitModeSelected,
+                    settingsManager = settingsManager,
+                    scope = scope
+                )
+            }
+        }
+        
         // ページインジケーター
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             repeat(tutorialPages.size + 1) { index ->
@@ -108,30 +127,11 @@ fun WelcomeScreen(
             }
         }
         
-        // ページコンテンツ
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.weight(1f)
-        ) { page ->
-            if (page < tutorialPages.size) {
-                // チュートリアルページ
-                TutorialPageContent(tutorialPages[page])
-            } else {
-                // データ保存方法選択ページ
-                DataStorageSelectionPage(
-                    onLocalModeSelected = onLocalModeSelected,
-                    onGitModeSelected = onGitModeSelected,
-                    settingsManager = settingsManager,
-                    scope = scope
-                )
-            }
-        }
-        
         // ナビゲーションボタン
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
