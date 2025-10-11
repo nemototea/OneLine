@@ -62,7 +62,16 @@ class MainActivity : ComponentActivity() {
         initializeNotifications()
 
         setContent {
-            OneLineTheme {
+            val settingsManager = remember { SettingsManager.getInstance(this@MainActivity) }
+            val themeMode by settingsManager.themeMode.collectAsState(initial = net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM)
+            
+            OneLineTheme(
+                darkTheme = when (themeMode) {
+                    net.chasmine.oneline.ui.theme.ThemeMode.LIGHT -> false
+                    net.chasmine.oneline.ui.theme.ThemeMode.DARK -> true
+                    net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+                }
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
