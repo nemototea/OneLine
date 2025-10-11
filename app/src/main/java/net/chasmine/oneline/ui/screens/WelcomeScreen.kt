@@ -1,16 +1,22 @@
 package net.chasmine.oneline.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cloud
-import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +26,14 @@ import kotlinx.coroutines.launch
 import net.chasmine.oneline.R
 import net.chasmine.oneline.data.preferences.SettingsManager
 
+data class TutorialPage(
+    val icon: ImageVector,
+    val title: String,
+    val description: String,
+    val details: List<String>
+)
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WelcomeScreen(
     onLocalModeSelected: () -> Unit,
@@ -28,7 +42,203 @@ fun WelcomeScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val settingsManager = remember { SettingsManager.getInstance(context) }
+    
+    // チュートリアルページの定義
+    val tutorialPages = listOf(
+        TutorialPage(
+            icon = Icons.Default.EditNote,
+            title = "シンプルな日記",
+            description = "毎日の想いを一行で記録",
+            details = listOf(
+                "短い文章で気軽に記録",
+                "継続しやすいシンプルさ",
+                "日々の振り返りに最適"
+            )
+        ),
+        TutorialPage(
+            icon = Icons.Default.CalendarMonth,
+            title = "カレンダー表示",
+            description = "過去の記録を簡単に振り返り",
+            details = listOf(
+                "月別でまとめて確認",
+                "記録した日が一目でわかる",
+                "タップして詳細を表示"
+            )
+        ),
+        TutorialPage(
+            icon = Icons.Default.Notifications,
+            title = "通知機能",
+            description = "書き忘れを防ぐリマインダー",
+            details = listOf(
+                "毎日決まった時間に通知",
+                "通知時間は自由に設定可能",
+                "継続的な記録をサポート"
+            )
+        )
+    )
+    
+    val pagerState = rememberPagerState(pageCount = { tutorialPages.size + 1 }) // +1 for settings page
+    
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // ページコンテンツ
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f)
+        ) { page ->
+            if (page < tutorialPages.size) {
+                // チュートリアルページ
+                TutorialPageContent(tutorialPages[page])
+            } else {
+                // データ保存方法選択ページ
+                DataStorageSelectionPage(
+                    onLocalModeSelected = onLocalModeSelected,
+                    onGitModeSelected = onGitModeSelected,
+                    settingsManager = settingsManager,
+                    scope = scope
+                )
+            }
+        }
+        
+        // ページインジケーター
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(tutorialPages.size + 1) { index ->
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (index == pagerState.currentPage) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            }
+                        )
+                )
+                if (index < tutorialPages.size) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+        }
+        
+        // ナビゲーションボタン
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // スキップボタン（最後のページでは非表示）
+            if (pagerState.currentPage < tutorialPages.size) {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(tutorialPages.size)
+                        }
+                    }
+                ) {
+                    Text("スキップ")
+                }
+            } else {
+                Spacer(modifier = Modifier.width(1.dp))
+            }
+            
+            // 次へボタン（最後のページでは非表示）
+            if (pagerState.currentPage < tutorialPages.size) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            if (pagerState.currentPage < tutorialPages.size) {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    }
+                ) {
+                    Text(if (pagerState.currentPage == tutorialPages.size - 1) "設定へ" else "次へ")
+                }
+            }
+        }
+    }
+}
 
+@Composable
+private fun TutorialPageContent(page: TutorialPage) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // アイコン
+        Icon(
+            imageVector = page.icon,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // タイトル
+        Text(
+            text = page.title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 説明
+        Text(
+            text = page.description,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 詳細リスト
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            page.details.forEach { detail ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = detail,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DataStorageSelectionPage(
+    onLocalModeSelected: () -> Unit,
+    onGitModeSelected: () -> Unit,
+    settingsManager: SettingsManager,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -44,13 +254,6 @@ fun WelcomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // アプリアイコンがあれば表示
-            // Image(
-            //     painter = painterResource(id = R.drawable.ic_app_logo),
-            //     contentDescription = "OneLine",
-            //     modifier = Modifier.size(80.dp)
-            // )
-            
             Text(
                 text = "OneLine へようこそ",
                 style = MaterialTheme.typography.headlineMedium,
@@ -59,8 +262,8 @@ fun WelcomeScreen(
             )
             
             Text(
-                text = "毎日の想いを一行で記録する\nシンプルな日記アプリです",
-                style = MaterialTheme.typography.bodyLarge,
+                text = "データの保存方法を選択してください",
+                style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -70,14 +273,6 @@ fun WelcomeScreen(
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "データの保存方法を選択してください",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
             // ローカル保存オプション
             Card(
                 modifier = Modifier.fillMaxWidth(),
