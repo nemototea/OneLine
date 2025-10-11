@@ -2,27 +2,18 @@ package net.chasmine.oneline.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import net.chasmine.oneline.R
 
-val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
-
-val notoSansJpFont = GoogleFont("Noto Sans JP")
-
 val NotoSansJpFontFamily = FontFamily(
-    Font(googleFont = notoSansJpFont, fontProvider = provider, weight = FontWeight.Light),
-    Font(googleFont = notoSansJpFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = notoSansJpFont, fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = notoSansJpFont, fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = notoSansJpFont, fontProvider = provider, weight = FontWeight.Bold)
+    Font(R.font.noto_sans_jp_light, FontWeight.Light),
+    Font(R.font.noto_sans_jp_regular, FontWeight.Normal),
+    Font(R.font.noto_sans_jp_medium, FontWeight.Medium),
+    Font(R.font.noto_sans_jp_semibold, FontWeight.SemiBold),
+    Font(R.font.noto_sans_jp_bold, FontWeight.Bold)
 )
 
 val Typography = Typography(

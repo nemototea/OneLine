@@ -116,9 +116,6 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
 
-    // Google Fonts for Noto Sans JP
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.4")
-
 }
 
 // カスタムテストタスク
