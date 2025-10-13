@@ -26,8 +26,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,6 +54,7 @@ import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.ui.components.CustomBottomBar
 import net.chasmine.oneline.ui.screens.AboutScreen
 import net.chasmine.oneline.ui.screens.CalendarScreen
 import net.chasmine.oneline.ui.screens.DataStorageSettingsScreen
@@ -291,30 +290,25 @@ fun OneLineApp(
                 route?.startsWith("about") != true &&
                 route?.startsWith("diary_edit") != true) {
                 
-                NavigationBar {
-                    NavigationBarItem(
-                        icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "日記一覧") },
-                        label = { Text("日記") },
-                        selected = selectedTab == 0,
-                        onClick = { 
-                            selectedTab = 0
-                            navController.navigate("diary_list") {
+                CustomBottomBar(
+                    selectedTab = selectedTab,
+                    onTabSelected = { tab ->
+                        selectedTab = tab
+                        when (tab) {
+                            0 -> navController.navigate("diary_list") {
                                 popUpTo("diary_list") { inclusive = true }
                             }
-                        }
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Default.CalendarMonth, contentDescription = "カレンダー") },
-                        label = { Text("カレンダー") },
-                        selected = selectedTab == 1,
-                        onClick = { 
-                            selectedTab = 1
-                            navController.navigate("calendar") {
+                            1 -> navController.navigate("calendar") {
                                 popUpTo("diary_list") { saveState = true }
                             }
                         }
-                    )
-                }
+                    },
+                    onNewEntryClick = {
+                        checkGitConfigAndNavigate {
+                            navController.navigate("diary_edit/new")
+                        }
+                    }
+                )
             }
         }
     ) { paddingValues ->
@@ -367,11 +361,6 @@ fun OneLineApp(
                 onNavigateToSettings = { navController.navigate("settings") },
                 onNavigateToEdit = { date ->
                     navController.navigate("diary_edit/$date")
-                },
-                onNavigateToNewEntry = {
-                    checkGitConfigAndNavigate {
-                        navController.navigate("diary_edit/new")
-                    }
                 }
             )
         }
