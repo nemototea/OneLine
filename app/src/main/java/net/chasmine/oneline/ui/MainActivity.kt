@@ -8,6 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,6 +21,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -34,6 +38,7 @@ import net.chasmine.oneline.ui.screens.GitSettingsScreen
 import net.chasmine.oneline.ui.screens.NotificationSettingsScreen
 import net.chasmine.oneline.ui.screens.AboutScreen
 import net.chasmine.oneline.ui.screens.WelcomeScreen
+import net.chasmine.oneline.ui.screens.CalendarScreen
 import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -129,6 +134,9 @@ fun OneLineApp(
     // 初回起動判定
     var isFirstLaunch by remember { mutableStateOf(true) }
     var hasValidSettings by remember { mutableStateOf(false) }
+    
+    // ボトムナビゲーション用の状態
+    var selectedTab by remember { mutableStateOf(0) }
     
     LaunchedEffect(Unit) {
         hasValidSettings = repositoryManager.hasValidSettings()
@@ -228,39 +236,90 @@ fun OneLineApp(
             } else if (openSettings) {
                 navController.navigate("settings")
             } else {
+                selectedTab = 0
                 navController.navigate("diary_list")
             }
         }
     }
 
-    NavHost(
-        navController = navController, 
-        startDestination = if (isFirstLaunch && !fromWidget) "welcome" else "diary_list",
-        enterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { it },
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        exitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { -it / 3 },
-                animationSpec = tween(300)
-            ) + fadeOut(animationSpec = tween(300))
-        },
-        popEnterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { -it / 3 },
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { it },
-                animationSpec = tween(300)
-            ) + fadeOut(animationSpec = tween(300))
+    // 現在のルートに基づいてタブ状態を更新
+    val currentRoute by navController.currentBackStackEntryAsState()
+    LaunchedEffect(currentRoute?.destination?.route) {
+        when (currentRoute?.destination?.route) {
+            "diary_list" -> selectedTab = 0
+            "calendar" -> selectedTab = 1
         }
-    ) {
+    }
+
+    Scaffold(
+        bottomBar = {
+            // ウェルカム画面と設定画面以外でボトムナビゲーションを表示
+            val currentRoute by navController.currentBackStackEntryAsState()
+            val route = currentRoute?.destination?.route
+            if (route != "welcome" && 
+                route?.startsWith("settings") != true && 
+                route?.startsWith("data_storage_settings") != true &&
+                route?.startsWith("git_settings") != true &&
+                route?.startsWith("notification_settings") != true &&
+                route?.startsWith("about") != true &&
+                route?.startsWith("diary_edit") != true) {
+                
+                NavigationBar {
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.List, contentDescription = "日記一覧") },
+                        label = { Text("日記") },
+                        selected = selectedTab == 0,
+                        onClick = { 
+                            selectedTab = 0
+                            navController.navigate("diary_list") {
+                                popUpTo("diary_list") { inclusive = true }
+                            }
+                        }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.CalendarMonth, contentDescription = "カレンダー") },
+                        label = { Text("カレンダー") },
+                        selected = selectedTab == 1,
+                        onClick = { 
+                            selectedTab = 1
+                            navController.navigate("calendar") {
+                                popUpTo("diary_list") { saveState = true }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
+        NavHost(
+            navController = navController, 
+            startDestination = if (isFirstLaunch && !fromWidget) "welcome" else "diary_list",
+            modifier = Modifier.padding(paddingValues),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it / 3 },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it / 3 },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
         composable("welcome") {
             WelcomeScreen(
                 onLocalModeSelected = {
@@ -338,6 +397,15 @@ fun OneLineApp(
             AboutScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+
+        composable("calendar") {
+            CalendarScreen(
+                onNavigateToEdit = { date ->
+                    navController.navigate("diary_edit/$date")
+                }
+            )
+        }
         }
     }
 }
