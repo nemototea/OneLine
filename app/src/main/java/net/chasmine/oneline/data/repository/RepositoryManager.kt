@@ -9,6 +9,9 @@ import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.local.LocalRepository
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.preferences.SettingsManager
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 
 /**
  * リポジトリ統合管理クラス
@@ -96,6 +99,37 @@ class RepositoryManager private constructor(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get entry", e)
             null
+        }
+    }
+
+    /**
+     * 特定の月の日記エントリーがある日付を取得
+     */
+    suspend fun getDiaryEntriesForMonth(yearMonth: YearMonth): Set<LocalDate> {
+        return try {
+            val isLocalOnly = settingsManager.isLocalOnlyMode.first()
+            val allEntries = if (isLocalOnly) {
+                localRepository.getAllEntries().first()
+            } else {
+                gitRepository.getAllEntries().first()
+            }
+            
+            allEntries.mapNotNull { entry ->
+                try {
+                    val entryDate = LocalDate.parse(entry.date)
+                    if (entryDate.year == yearMonth.year && entryDate.monthValue == yearMonth.monthValue) {
+                        entryDate
+                    } else {
+                        null
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to parse date: ${entry.date}", e)
+                    null
+                }
+            }.toSet()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get diary entries for month", e)
+            emptySet()
         }
     }
 
