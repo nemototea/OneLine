@@ -27,7 +27,6 @@ import java.time.LocalDate
 fun DiaryListScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToEdit: (String) -> Unit,
-    onNavigateToNewEntry: () -> Unit,
     viewModel: DiaryListViewModel = viewModel()
 ) {
     val entries by viewModel.entries.collectAsState(initial = emptyList())
@@ -92,57 +91,6 @@ fun DiaryListScreen(
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            val isSyncing = syncStatus is DiaryListViewModel.SyncStatus.Syncing
-            
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                // 同期中の場合はメッセージを表示
-                if (isSyncing) {
-                    Card(
-                        modifier = Modifier.padding(bottom = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Text(
-                            text = "同期中...",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-                
-                FloatingActionButton(
-                    onClick = {
-                        if (!isSyncing) {
-                            onNavigateToNewEntry()
-                        }
-                    },
-                    containerColor = if (isSyncing) 
-                        MaterialTheme.colorScheme.surfaceVariant 
-                    else 
-                        MaterialTheme.colorScheme.primary
-                ) {
-                    if (isSyncing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "新規作成",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            }
         }
     ) { paddingValues ->
         Box(
@@ -169,7 +117,7 @@ fun DiaryListScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "右下の＋ボタンから\n最初の日記を書いてみましょう",
+                        text = "ボトムバーの＋ボタンから\n最初の日記を書いてみましょう",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center
                     )
@@ -224,7 +172,7 @@ fun DiaryListScreen(
                 Row(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 80.dp) // FABの上に表示
+                        .padding(bottom = 16.dp)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.Center
@@ -275,7 +223,7 @@ fun DiaryListScreen(
                 Card(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 80.dp)
+                        .padding(bottom = 16.dp)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     colors = CardDefaults.cardColors(
