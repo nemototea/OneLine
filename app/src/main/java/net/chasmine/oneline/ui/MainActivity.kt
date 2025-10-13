@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.activity.enableEdgeToEdge
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -61,8 +62,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ステータスバーをアプリのコンテンツに合わせる
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // エッジ・トゥ・エッジ表示を有効化
+        enableEdgeToEdge()
 
         // ウィジェットからの起動かどうかをチェック
         val fromWidget = intent.getBooleanExtra("EXTRA_FROM_WIDGET", false)
@@ -84,9 +85,7 @@ class MainActivity : ComponentActivity() {
                 }
             ) {
                 Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding(),
+                    modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     OneLineApp(
