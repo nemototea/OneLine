@@ -64,9 +64,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // エッジ・トゥ・エッジ表示を有効化
-        enableEdgeToEdge()
-
         // ウィジェットからの起動かどうかをチェック
         val fromWidget = intent.getBooleanExtra("EXTRA_FROM_WIDGET", false)
         val openNewEntry = intent.getBooleanExtra("EXTRA_OPEN_NEW_ENTRY", false)
@@ -74,6 +71,14 @@ class MainActivity : ComponentActivity() {
 
         // 通知初期化処理
         initializeNotifications()
+
+        // エッジ・トゥ・エッジ表示を有効化（TopAppBarの色に合わせる）
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(
+                lightScrim = android.graphics.Color.parseColor("#FF1F2937"), // TopAppBarのダークカラー
+                darkScrim = android.graphics.Color.parseColor("#FF1F2937")
+            )
+        )
 
         setContent {
             val settingsManager = remember { SettingsManager.getInstance(this@MainActivity) }
@@ -86,17 +91,6 @@ class MainActivity : ComponentActivity() {
                     net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
                 }
             ) {
-                // ステータスバーの色をTopAppBarの色に設定
-                val statusBarColor = MaterialTheme.colorScheme.surface
-                LaunchedEffect(statusBarColor) {
-                    enableEdgeToEdge(
-                        statusBarStyle = SystemBarStyle.auto(
-                            lightScrim = statusBarColor.toArgb(),
-                            darkScrim = statusBarColor.toArgb()
-                        )
-                    )
-                }
-                
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
