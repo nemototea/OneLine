@@ -6,47 +6,67 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.WindowCompat
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.SystemBarStyle
-import androidx.compose.ui.graphics.toArgb
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import net.chasmine.oneline.data.git.GitRepository
-import net.chasmine.oneline.data.repository.RepositoryManager
-import net.chasmine.oneline.data.preferences.SettingsManager
-import net.chasmine.oneline.util.DiaryNotificationManager
-import net.chasmine.oneline.util.NotificationInitializer
-import net.chasmine.oneline.ui.screens.DiaryEditScreen
-import net.chasmine.oneline.ui.screens.DiaryListScreen
-import net.chasmine.oneline.ui.screens.MainSettingsScreen
-import net.chasmine.oneline.ui.screens.DataStorageSettingsScreen
-import net.chasmine.oneline.ui.screens.GitSettingsScreen
-import net.chasmine.oneline.ui.screens.NotificationSettingsScreen
-import net.chasmine.oneline.ui.screens.AboutScreen
-import net.chasmine.oneline.ui.screens.WelcomeScreen
-import net.chasmine.oneline.ui.screens.CalendarScreen
-import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.chasmine.oneline.data.git.GitRepository
+import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.ui.screens.AboutScreen
+import net.chasmine.oneline.ui.screens.CalendarScreen
+import net.chasmine.oneline.ui.screens.DataStorageSettingsScreen
+import net.chasmine.oneline.ui.screens.DiaryEditScreen
+import net.chasmine.oneline.ui.screens.DiaryListScreen
+import net.chasmine.oneline.ui.screens.GitSettingsScreen
+import net.chasmine.oneline.ui.screens.MainSettingsScreen
+import net.chasmine.oneline.ui.screens.NotificationSettingsScreen
+import net.chasmine.oneline.ui.screens.WelcomeScreen
+import net.chasmine.oneline.ui.theme.OneLineTheme
+import net.chasmine.oneline.util.NotificationInitializer
 
 class MainActivity : ComponentActivity() {
     
@@ -72,13 +92,8 @@ class MainActivity : ComponentActivity() {
         // 通知初期化処理
         initializeNotifications()
 
-        // エッジ・トゥ・エッジ表示を有効化（TopAppBarの色に合わせる）
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(
-                lightScrim = android.graphics.Color.parseColor("#FF1F2937"), // TopAppBarのダークカラー
-                darkScrim = android.graphics.Color.parseColor("#FF1F2937")
-            )
-        )
+        // エッジ・トゥ・エッジ表示を有効化（透明にしてTopAppBarの色を拡張）
+        enableEdgeToEdge()
 
         setContent {
             val settingsManager = remember { SettingsManager.getInstance(this@MainActivity) }
@@ -278,7 +293,7 @@ fun OneLineApp(
                 
                 NavigationBar {
                     NavigationBarItem(
-                        icon = { Icon(Icons.Default.List, contentDescription = "日記一覧") },
+                        icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "日記一覧") },
                         label = { Text("日記") },
                         selected = selectedTab == 0,
                         onClick = { 
