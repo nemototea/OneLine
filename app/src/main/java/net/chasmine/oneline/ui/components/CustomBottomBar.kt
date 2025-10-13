@@ -46,7 +46,7 @@ fun CustomBottomBar(
             )
             
             // 中央のスペース（FABのため）
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(0.25f))
             
             // カレンダータブ
             NavigationBarItem(

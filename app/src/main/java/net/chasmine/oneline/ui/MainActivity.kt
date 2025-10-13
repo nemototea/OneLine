@@ -163,6 +163,7 @@ fun OneLineApp(
     
     // ボトムナビゲーション用の状態
     var selectedTab by remember { mutableStateOf(0) }
+    var previousTab by remember { mutableStateOf(0) }
     
     LaunchedEffect(Unit) {
         hasValidSettings = repositoryManager.hasValidSettings()
@@ -293,6 +294,7 @@ fun OneLineApp(
                 CustomBottomBar(
                     selectedTab = selectedTab,
                     onTabSelected = { tab ->
+                        previousTab = selectedTab
                         selectedTab = tab
                         when (tab) {
                             0 -> navController.navigate("diary_list") {
@@ -317,16 +319,38 @@ fun OneLineApp(
             startDestination = if (isFirstLaunch && !fromWidget) "welcome" else "diary_list",
             modifier = Modifier.padding(paddingValues),
             enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { it },
-                    animationSpec = tween(300)
-                ) + fadeIn(animationSpec = tween(300))
+                val isBottomNavTransition = initialState.destination.route in listOf("diary_list", "calendar") &&
+                                          targetState.destination.route in listOf("diary_list", "calendar")
+                
+                if (isBottomNavTransition) {
+                    val direction = if (previousTab < selectedTab) 1 else -1
+                    slideInHorizontally(
+                        initialOffsetX = { it * direction },
+                        animationSpec = tween(300)
+                    ) + fadeIn(animationSpec = tween(300))
+                } else {
+                    slideInHorizontally(
+                        initialOffsetX = { it },
+                        animationSpec = tween(300)
+                    ) + fadeIn(animationSpec = tween(300))
+                }
             },
             exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { -it / 3 },
-                    animationSpec = tween(300)
-                ) + fadeOut(animationSpec = tween(300))
+                val isBottomNavTransition = initialState.destination.route in listOf("diary_list", "calendar") &&
+                                          targetState.destination.route in listOf("diary_list", "calendar")
+                
+                if (isBottomNavTransition) {
+                    val direction = if (previousTab < selectedTab) 1 else -1
+                    slideOutHorizontally(
+                        targetOffsetX = { -it * direction / 3 },
+                        animationSpec = tween(300)
+                    ) + fadeOut(animationSpec = tween(300))
+                } else {
+                    slideOutHorizontally(
+                        targetOffsetX = { -it / 3 },
+                        animationSpec = tween(300)
+                    ) + fadeOut(animationSpec = tween(300))
+                }
             },
             popEnterTransition = {
                 slideInHorizontally(
