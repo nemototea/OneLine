@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -60,6 +61,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // ステータスバーをアプリのコンテンツに合わせる
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         // ウィジェットからの起動かどうかをチェック
         val fromWidget = intent.getBooleanExtra("EXTRA_FROM_WIDGET", false)
         val openNewEntry = intent.getBooleanExtra("EXTRA_OPEN_NEW_ENTRY", false)
@@ -80,7 +84,9 @@ class MainActivity : ComponentActivity() {
                 }
             ) {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .systemBarsPadding(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     OneLineApp(
