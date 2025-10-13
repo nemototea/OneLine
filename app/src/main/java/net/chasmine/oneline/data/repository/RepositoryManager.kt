@@ -103,37 +103,6 @@ class RepositoryManager private constructor(private val context: Context) {
     }
 
     /**
-     * 特定の月の日記エントリーがある日付を取得
-     */
-    suspend fun getDiaryEntriesForMonth(yearMonth: YearMonth): Set<LocalDate> {
-        return try {
-            val isLocalOnly = settingsManager.isLocalOnlyMode.first()
-            val allEntries = if (isLocalOnly) {
-                localRepository.getAllEntries().first()
-            } else {
-                gitRepository.getAllEntries().first()
-            }
-            
-            allEntries.mapNotNull { entry ->
-                try {
-                    val entryDate = LocalDate.parse(entry.date)
-                    if (entryDate.year == yearMonth.year && entryDate.monthValue == yearMonth.monthValue) {
-                        entryDate
-                    } else {
-                        null
-                    }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Failed to parse date: ${entry.date}", e)
-                    null
-                }
-            }.toSet()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get diary entries for month", e)
-            emptySet()
-        }
-    }
-
-    /**
      * すべての日記エントリーを取得
      */
     fun getAllEntries(): Flow<List<DiaryEntry>> = flow {

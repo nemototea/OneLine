@@ -40,8 +40,8 @@ fun CalendarScreen(
     
     // 日記エントリーを取得
     LaunchedEffect(currentMonth) {
-        val entries = repositoryManager.getDiaryEntriesForMonth(currentMonth)
-        diaryEntries = entries
+        // TODO: 実装予定
+        diaryEntries = emptySet()
     }
     
     Column(
