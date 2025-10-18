@@ -34,47 +34,62 @@ fun CalendarScreen(
 ) {
     val context = LocalContext.current
     val repositoryManager = remember { RepositoryManager.getInstance(context) }
-    
+
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var diaryEntries by remember { mutableStateOf<Set<LocalDate>>(emptySet()) }
-    
+
     // 日記エントリーを取得
     LaunchedEffect(currentMonth) {
-        // TODO: 実装予定
-        diaryEntries = emptySet()
-    }
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // ヘッダー
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { currentMonth = currentMonth.minusMonths(1) }
-            ) {
-                Icon(Icons.Default.ChevronLeft, contentDescription = "前の月")
-            }
-            
-            Text(
-                text = "${currentMonth.year}年${currentMonth.monthValue}月",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            
-            IconButton(
-                onClick = { currentMonth = currentMonth.plusMonths(1) }
-            ) {
-                Icon(Icons.Default.ChevronRight, contentDescription = "次の月")
-            }
+        repositoryManager.getAllEntries().collect { entries ->
+            diaryEntries = entries.map { it.date }.toSet()
         }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = { currentMonth = currentMonth.minusMonths(1) }
+                        ) {
+                            Icon(
+                                Icons.Default.ChevronLeft,
+                                contentDescription = "前の月",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Text(
+                            text = "${currentMonth.year}年${currentMonth.monthValue}月",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        IconButton(
+                            onClick = { currentMonth = currentMonth.plusMonths(1) }
+                        ) {
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = "次の月",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
         
         // 曜日ヘッダー
         Row(
@@ -94,56 +109,15 @@ fun CalendarScreen(
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        // カレンダーグリッド
-        CalendarGrid(
-            currentMonth = currentMonth,
-            diaryEntries = diaryEntries,
-            onDateClick = { date ->
-                val dateString = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                onNavigateToEdit(dateString)
-            }
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // 説明
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "📝 日記の記録状況",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "日記を書いた日",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            // カレンダーグリッド
+            CalendarGrid(
+                currentMonth = currentMonth,
+                diaryEntries = diaryEntries,
+                onDateClick = { date ->
+                    val dateString = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    onNavigateToEdit(dateString)
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "日付をタップすると、その日の日記を編集できます",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            )
         }
     }
 }
@@ -202,7 +176,7 @@ fun CalendarDay(
 ) {
     val today = LocalDate.now()
     val isToday = date == today
-    
+
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -211,29 +185,46 @@ fun CalendarDay(
         contentAlignment = Alignment.Center
     ) {
         if (date != null && isCurrentMonth) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .background(
-                        when {
-                            isToday -> MaterialTheme.colorScheme.primaryContainer
-                            hasEntry -> MaterialTheme.colorScheme.primary
-                            else -> MaterialTheme.colorScheme.surface.copy(alpha = 0f)
-                        }
-                    ),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = when {
-                        isToday -> MaterialTheme.colorScheme.onPrimaryContainer
-                        hasEntry -> MaterialTheme.colorScheme.onPrimary
-                        else -> MaterialTheme.colorScheme.onSurface
-                    },
-                    fontWeight = if (hasEntry || isToday) FontWeight.Bold else FontWeight.Normal
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isToday) MaterialTheme.colorScheme.primaryContainer
+                            else Color.Transparent
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = date.dayOfMonth.toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (isToday)
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            else
+                                MaterialTheme.colorScheme.onSurface,
+                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                        )
+
+                        // 日記投稿済みの日付にドットを表示
+                        if (hasEntry) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(5.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                            )
+                        }
+                    }
+                }
             }
         } else if (date != null) {
             // 前月・次月の日付（薄く表示）
