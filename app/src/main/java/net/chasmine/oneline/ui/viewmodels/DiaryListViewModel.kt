@@ -32,6 +32,16 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     private val _todayEntry = MutableStateFlow<DiaryEntry?>(null)
     val todayEntry: StateFlow<DiaryEntry?> = _todayEntry
 
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
+
+    private val _hasMoreData = MutableStateFlow(true)
+    val hasMoreData: StateFlow<Boolean> = _hasMoreData
+
+    private var allEntries: List<DiaryEntry> = emptyList()
+    private var currentPage = 0
+    private val pageSize = 20
+
     init {
         viewModelScope.launch {
             // リポジトリを初期化
@@ -45,15 +55,53 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     fun loadEntries() {
         viewModelScope.launch {
             repositoryManager.getAllEntries().collect { diaryEntries ->
-                _entries.value = diaryEntries
-                
+                allEntries = diaryEntries
+                currentPage = 0
+                _hasMoreData.value = allEntries.size > pageSize
+
+                // 最初のページを読み込み
+                _entries.value = allEntries.take(pageSize)
+
                 // 今日の日記をチェック
                 val today = LocalDate.now()
                 val todayEntryFound = diaryEntries.find { it.date == today }
                 _todayEntry.value = todayEntryFound
-                
+
                 Log.d("DiaryListViewModel", "Loaded entries: ${diaryEntries.size}") // デバッグ用ログ
                 Log.d("DiaryListViewModel", "Today's entry: ${todayEntryFound?.content ?: "None"}")
+            }
+        }
+    }
+
+    fun loadMoreEntries() {
+        if (_isLoadingMore.value || !_hasMoreData.value) return
+
+        viewModelScope.launch {
+            _isLoadingMore.value = true
+
+            try {
+                // 次のページを計算
+                val nextPage = currentPage + 1
+                val startIndex = nextPage * pageSize
+                val endIndex = minOf(startIndex + pageSize, allEntries.size)
+
+                if (startIndex < allEntries.size) {
+                    // 新しいエントリーを追加
+                    val newEntries = allEntries.subList(startIndex, endIndex)
+                    _entries.value = _entries.value + newEntries
+                    currentPage = nextPage
+
+                    // まだデータがあるかチェック
+                    _hasMoreData.value = endIndex < allEntries.size
+
+                    Log.d("DiaryListViewModel", "Loaded more entries: ${newEntries.size}")
+                } else {
+                    _hasMoreData.value = false
+                }
+            } catch (e: Exception) {
+                Log.e("DiaryListViewModel", "Failed to load more entries", e)
+            } finally {
+                _isLoadingMore.value = false
             }
         }
     }
