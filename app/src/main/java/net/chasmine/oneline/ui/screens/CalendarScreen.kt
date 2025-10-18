@@ -219,7 +219,7 @@ fun CalendarDay(
                         when {
                             isToday -> MaterialTheme.colorScheme.primaryContainer
                             hasEntry -> MaterialTheme.colorScheme.primary
-                            else -> Color.Transparent
+                            else -> MaterialTheme.colorScheme.surface.copy(alpha = 0f)
                         }
                     ),
                 contentAlignment = Alignment.Center
