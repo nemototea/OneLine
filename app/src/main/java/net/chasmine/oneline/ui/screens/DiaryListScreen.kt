@@ -2,13 +2,16 @@ package net.chasmine.oneline.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -16,11 +19,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.components.DiaryCard
-import net.chasmine.oneline.ui.components.TodayEntryForm
-import net.chasmine.oneline.ui.components.TodayEntryCard
 import net.chasmine.oneline.ui.viewmodels.DiaryListViewModel
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,10 +30,12 @@ fun DiaryListScreen(
     viewModel: DiaryListViewModel = viewModel()
 ) {
     val entries by viewModel.entries.collectAsState(initial = emptyList())
-    val todayEntry by viewModel.todayEntry.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
+    val hasMoreData by viewModel.hasMoreData.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     var showSyncStatusMessage by remember { mutableStateOf(false) }
     var syncStatusMessage by remember { mutableStateOf("") }
 
@@ -53,6 +55,19 @@ fun DiaryListScreen(
             }
             else -> {}
         }
+    }
+
+    // 無限スクロールのトリガー
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleIndex ->
+                if (lastVisibleIndex != null &&
+                    lastVisibleIndex >= entries.size - 3 &&
+                    hasMoreData &&
+                    !isLoadingMore) {
+                    viewModel.loadMoreEntries()
+                }
+            }
     }
 
     Scaffold(
@@ -125,44 +140,41 @@ fun DiaryListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    state = listState,
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
-                    // 今日の日記の処理
-                    if (todayEntry == null) {
-                        // 今日の日記が存在しない場合は入力フォームを表示
-                        item {
-                            TodayEntryForm(
-                                onSave = { content ->
-                                    viewModel.saveTodayEntry(content)
-                                },
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                        }
-                    } else {
-                        // 今日の日記が存在する場合は特別なカードを表示
-                        item {
-                            todayEntry?.let { entry ->
-                                TodayEntryCard(
-                                    entry = entry,
-                                    onClick = {
-                                        onNavigateToEdit(entry.date.toString())
-                                    },
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
-                            }
-                        }
-                    }
-                    
-                    // 今日以外の日記エントリー
-                    items(entries.filter { it.date != LocalDate.now() }) { entry ->
+                    // 全ての日記エントリー
+                    items(
+                        count = entries.size,
+                        key = { index -> entries[index].date.toString() }
+                    ) { index ->
+                        val entry = entries[index]
                         DiaryCard(
                             entry = entry,
                             onClick = {
                                 onNavigateToEdit(entry.date.toString())
                             },
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                            showTopLine = index > 0,
+                            showBottomLine = index < entries.size - 1
                         )
+                    }
+
+                    // ローディングインジケータ
+                    if (isLoadingMore) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    strokeWidth = 3.dp
+                                )
+                            }
+                        }
                     }
                 }
             }
