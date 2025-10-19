@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -100,6 +102,7 @@ fun CalendarScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             // 年月の切り替えヘッダー
@@ -206,9 +209,12 @@ fun CalendarGrid(
     
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp), // 固定高を設定してスクロールコンテナとのネストを回避
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        userScrollEnabled = false // 親のColumnでスクロールするため無効化
     ) {
         items(calendarDays) { date ->
             CalendarDay(
@@ -308,6 +314,9 @@ fun DiaryStatisticsSection(
     val totalCount = remember(allEntries) {
         DiaryStatistics.calculateTotalCount(allEntries)
     }
+    val weeklyPattern = remember(allEntries) {
+        DiaryStatistics.getWeeklyPattern(allEntries)
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -328,12 +337,11 @@ fun DiaryStatisticsSection(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 2x2のグリッド
+            // 1列目：現在のストリークと最長ストリーク
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 現在のストリーク
                 StatisticsItem(
                     modifier = Modifier.weight(1f),
                     label = "現在の連続",
@@ -342,7 +350,6 @@ fun DiaryStatisticsSection(
                     icon = "🔥"
                 )
 
-                // 最長ストリーク
                 StatisticsItem(
                     modifier = Modifier.weight(1f),
                     label = "最長連続",
@@ -354,11 +361,18 @@ fun DiaryStatisticsSection(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // 週間パターングラフ（フル幅）
+            WeeklyPatternGraph(
+                pattern = weeklyPattern
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 2列目：今月の投稿数と総投稿数
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 今月の投稿数
                 StatisticsItem(
                     modifier = Modifier.weight(1f),
                     label = "今月",
@@ -367,7 +381,6 @@ fun DiaryStatisticsSection(
                     icon = "📅"
                 )
 
-                // 総投稿数
                 StatisticsItem(
                     modifier = Modifier.weight(1f),
                     label = "総投稿数",
@@ -439,6 +452,80 @@ fun StatisticsItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+fun WeeklyPatternGraph(
+    pattern: List<Boolean>
+) {
+    val days = listOf("月", "火", "水", "木", "金", "土", "日")
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "📈 過去7日間",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // グラフ部分
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                pattern.forEachIndexed { index, hasEntry ->
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // バー
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(if (hasEntry) 40.dp else 8.dp)
+                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                                .background(
+                                    if (hasEntry)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                )
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // 曜日ラベル
+                        Text(
+                            text = days[index],
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (hasEntry)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }
