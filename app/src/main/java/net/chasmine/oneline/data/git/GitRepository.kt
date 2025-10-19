@@ -20,6 +20,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.util.DateUtils
+import org.eclipse.jgit.lib.PersonIdent
 
 class GitRepository private constructor(private val context: Context) {
 
@@ -28,6 +29,7 @@ class GitRepository private constructor(private val context: Context) {
     private var credentialsProvider: CredentialsProvider? = null
     private var repoDirectory: File? = null
     private var isInitialized = false
+    private val settingsManager = SettingsManager.getInstance(context)
 
     companion object {
         // ウィジェットから常に参照されるのでメモリリーク警告を抑制
@@ -283,7 +285,22 @@ class GitRepository private constructor(private val context: Context) {
                 "Update entry for ${entry.date}"
             }
 
-            val commitResult = git?.commit()?.setMessage(commitMessage)?.call()
+            // コミットユーザー情報を取得
+            val commitUserName = settingsManager.gitCommitUserName.first()
+            val commitUserEmail = settingsManager.gitCommitUserEmail.first()
+
+            // PersonIdentを設定（ユーザー情報が設定されている場合のみ）
+            val commitCommand = git?.commit()?.setMessage(commitMessage)
+            if (commitUserName.isNotBlank() && commitUserEmail.isNotBlank()) {
+                val author = PersonIdent(commitUserName, commitUserEmail)
+                commitCommand?.setAuthor(author)
+                commitCommand?.setCommitter(author)
+                Log.d(TAG, "Using commit author: $commitUserName <$commitUserEmail>")
+            } else {
+                Log.w(TAG, "Commit user info not set, using default Git identity")
+            }
+
+            val commitResult = commitCommand?.call()
             Log.d(TAG, "Commit completed: ${commitResult?.id?.name}")
 
             try {
@@ -308,7 +325,15 @@ class GitRepository private constructor(private val context: Context) {
                     if (!file.exists() || file.readText().trim() != entry.content.trim()) {
                         file.writeText(entry.content)
                         git?.add()?.addFilepattern(fileName)?.call()
-                        git?.commit()?.setMessage("Ensure diary content for ${entry.date}")?.call()
+
+                        // PersonIdentを設定してコミット
+                        val ensureCommitCommand = git?.commit()?.setMessage("Ensure diary content for ${entry.date}")
+                        if (commitUserName.isNotBlank() && commitUserEmail.isNotBlank()) {
+                            val author = PersonIdent(commitUserName, commitUserEmail)
+                            ensureCommitCommand?.setAuthor(author)
+                            ensureCommitCommand?.setCommitter(author)
+                        }
+                        ensureCommitCommand?.call()
                     }
                     
                     // 通常のpushを再試行
@@ -349,8 +374,18 @@ class GitRepository private constructor(private val context: Context) {
                 // Gitから削除をステージング
                 git?.rm()?.addFilepattern(fileName)?.call()
 
-                // コミット
-                git?.commit()?.setMessage("Delete entry for ${entry.date}")?.call()
+                // コミットユーザー情報を取得
+                val commitUserName = settingsManager.gitCommitUserName.first()
+                val commitUserEmail = settingsManager.gitCommitUserEmail.first()
+
+                // コミット（PersonIdentを設定）
+                val deleteCommitCommand = git?.commit()?.setMessage("Delete entry for ${entry.date}")
+                if (commitUserName.isNotBlank() && commitUserEmail.isNotBlank()) {
+                    val author = PersonIdent(commitUserName, commitUserEmail)
+                    deleteCommitCommand?.setAuthor(author)
+                    deleteCommitCommand?.setCommitter(author)
+                }
+                deleteCommitCommand?.call()
 
                 return@withContext Result.success(true)
             }
@@ -407,7 +442,17 @@ class GitRepository private constructor(private val context: Context) {
 
             // 競合マーカー除去コミット（何か変更があれば）
             if (git?.status()?.call()?.hasUncommittedChanges() == true) {
-                git?.commit()?.setMessage("Remove conflict markers and sync")?.call()
+                // コミットユーザー情報を取得
+                val commitUserName = settingsManager.gitCommitUserName.first()
+                val commitUserEmail = settingsManager.gitCommitUserEmail.first()
+
+                val syncCommitCommand = git?.commit()?.setMessage("Remove conflict markers and sync")
+                if (commitUserName.isNotBlank() && commitUserEmail.isNotBlank()) {
+                    val author = PersonIdent(commitUserName, commitUserEmail)
+                    syncCommitCommand?.setAuthor(author)
+                    syncCommitCommand?.setCommitter(author)
+                }
+                syncCommitCommand?.call()
             }
 
             // 通常のpushを試行
@@ -760,9 +805,19 @@ class GitRepository private constructor(private val context: Context) {
                         append(" - ${conflictResolution.conflictsResolved.size} conflicts resolved")
                     }
                 }
-                
-                git?.commit()?.setMessage(commitMessage)?.call()
-                
+
+                // コミットユーザー情報を取得
+                val commitUserName = settingsManager.gitCommitUserName.first()
+                val commitUserEmail = settingsManager.gitCommitUserEmail.first()
+
+                val migrateCommitCommand = git?.commit()?.setMessage(commitMessage)
+                if (commitUserName.isNotBlank() && commitUserEmail.isNotBlank()) {
+                    val author = PersonIdent(commitUserName, commitUserEmail)
+                    migrateCommitCommand?.setAuthor(author)
+                    migrateCommitCommand?.setCommitter(author)
+                }
+                migrateCommitCommand?.call()
+
                 // 5. プッシュ
                 git?.push()?.setCredentialsProvider(credentialsProvider)?.call()
                 Log.d(TAG, "Successfully migrated ${conflictResolution.filesToMigrate.size} diary files")
