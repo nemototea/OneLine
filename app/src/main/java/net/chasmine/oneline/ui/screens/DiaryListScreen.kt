@@ -141,7 +141,7 @@ fun DiaryListScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
-                    contentPadding = PaddingValues(vertical = 16.dp),
+                    contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     // 全ての日記エントリー
