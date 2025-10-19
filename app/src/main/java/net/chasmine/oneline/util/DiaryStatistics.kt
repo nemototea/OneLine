@@ -76,4 +76,18 @@ object DiaryStatistics {
     fun calculateTotalCount(entries: List<DiaryEntry>): Int {
         return entries.size
     }
+
+    /**
+     * 過去7日間の投稿パターンを取得
+     * @return 過去7日分の投稿有無（古い日→新しい日の順）
+     */
+    fun getWeeklyPattern(entries: List<DiaryEntry>): List<Boolean> {
+        val today = LocalDate.now()
+        val entryDates = entries.map { it.date }.toSet()
+
+        return (6 downTo 0).map { daysAgo ->
+            val date = today.minusDays(daysAgo.toLong())
+            entryDates.contains(date)
+        }
+    }
 }
