@@ -49,37 +49,12 @@ fun CalendarScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            onClick = { currentMonth = currentMonth.minusMonths(1) }
-                        ) {
-                            Icon(
-                                Icons.Default.ChevronLeft,
-                                contentDescription = "前の月",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        Text(
-                            text = "${currentMonth.year}年${currentMonth.monthValue}月",
-                            style = MaterialTheme.typography.titleLarge,
+                    Text(
+                        text = "OneLine",
+                        style = MaterialTheme.typography.displayMedium.copy(
                             fontWeight = FontWeight.Bold
                         )
-
-                        IconButton(
-                            onClick = { currentMonth = currentMonth.plusMonths(1) }
-                        ) {
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = "次の月",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
+                    )
                 }
             )
         }
@@ -90,24 +65,58 @@ fun CalendarScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-        
-        // 曜日ヘッダー
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            listOf("日", "月", "火", "水", "木", "金", "土").forEach { dayOfWeek ->
+            // 年月の切り替えヘッダー
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { currentMonth = currentMonth.minusMonths(1) }
+                ) {
+                    Icon(
+                        Icons.Default.ChevronLeft,
+                        contentDescription = "前の月",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
                 Text(
-                    text = dayOfWeek,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "${currentMonth.year}年${currentMonth.monthValue}月",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
                 )
+
+                IconButton(
+                    onClick = { currentMonth = currentMonth.plusMonths(1) }
+                ) {
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = "次の月",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
-        }
-        
-        Spacer(modifier = Modifier.height(8.dp))
+
+            // 曜日ヘッダー
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                listOf("日", "月", "火", "水", "木", "金", "土").forEach { dayOfWeek ->
+                    Text(
+                        text = dayOfWeek,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         
             // カレンダーグリッド
             CalendarGrid(
