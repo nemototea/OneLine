@@ -33,11 +33,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 val repoUrl = settingsManager.gitRepoUrl.first()
                 val username = settingsManager.gitUsername.first()
                 val token = settingsManager.gitToken.first()
+                val commitUserName = settingsManager.gitCommitUserName.first()
+                val commitUserEmail = settingsManager.gitCommitUserEmail.first()
 
                 _uiState.value = UiState.Loaded(
                     repoUrl = repoUrl,
                     username = username,
-                    token = token
+                    token = token,
+                    commitUserName = commitUserName,
+                    commitUserEmail = commitUserEmail
                 )
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Failed to load settings")
@@ -45,13 +49,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun saveSettings(repoUrl: String, username: String, token: String) {
+    fun saveSettings(
+        repoUrl: String,
+        username: String,
+        token: String,
+        commitUserName: String = "",
+        commitUserEmail: String = ""
+    ) {
         viewModelScope.launch {
             _uiState.value = UiState.Saving
 
             try {
                 // 設定を保存
-                settingsManager.saveGitSettings(repoUrl, username, token)
+                settingsManager.saveGitSettings(repoUrl, username, token, commitUserName, commitUserEmail)
 
                 // リポジトリを初期化
                 val result = gitRepository.initRepository(repoUrl, username, token)
@@ -122,7 +132,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun migrateRepository(repoUrl: String, username: String, token: String, migrationOption: String) {
+    fun migrateRepository(
+        repoUrl: String,
+        username: String,
+        token: String,
+        migrationOption: String,
+        commitUserName: String = "",
+        commitUserEmail: String = ""
+    ) {
         viewModelScope.launch {
             _uiState.value = UiState.Saving
 
@@ -134,7 +151,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 }
 
                 // 設定を保存
-                settingsManager.saveGitSettings(repoUrl, username, token)
+                settingsManager.saveGitSettings(repoUrl, username, token, commitUserName, commitUserEmail)
 
                 // リポジトリ移行を実行
                 val result = gitRepository.migrateToNewRepository(repoUrl, username, token, option)
@@ -155,7 +172,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     sealed class UiState {
         object Loading : UiState()
-        data class Loaded(val repoUrl: String, val username: String, val token: String) : UiState()
+        data class Loaded(
+            val repoUrl: String,
+            val username: String,
+            val token: String,
+            val commitUserName: String = "",
+            val commitUserEmail: String = ""
+        ) : UiState()
         object Saving : UiState()
         object SaveSuccess : UiState()
         data class Error(val message: String) : UiState()

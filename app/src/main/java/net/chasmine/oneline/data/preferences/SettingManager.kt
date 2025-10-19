@@ -24,15 +24,25 @@ class SettingsManager(private val context: Context) {
     private val gitRepoUrlKey = stringPreferencesKey("git_repo_url")
     private val gitUsernameKey = stringPreferencesKey("git_username")
     private val gitTokenKey = stringPreferencesKey("git_token")
+    private val gitCommitUserNameKey = stringPreferencesKey("git_commit_user_name")
+    private val gitCommitUserEmailKey = stringPreferencesKey("git_commit_user_email")
     private val localOnlyModeKey = booleanPreferencesKey("local_only_mode")
     private val themeModeKey = stringPreferencesKey("theme_mode")
 
     // Git設定を保存
-    suspend fun saveGitSettings(repoUrl: String, username: String, token: String) {
+    suspend fun saveGitSettings(
+        repoUrl: String,
+        username: String,
+        token: String,
+        commitUserName: String = "",
+        commitUserEmail: String = ""
+    ) {
         context.dataStore.edit { preferences ->
             preferences[gitRepoUrlKey] = repoUrl
             preferences[gitUsernameKey] = username
             preferences[gitTokenKey] = token
+            preferences[gitCommitUserNameKey] = commitUserName
+            preferences[gitCommitUserEmailKey] = commitUserEmail
             // Git設定を保存する際はローカルオンリーモードを無効にする
             preferences[localOnlyModeKey] = false
         }
@@ -47,6 +57,8 @@ class SettingsManager(private val context: Context) {
                 preferences.remove(gitRepoUrlKey)
                 preferences.remove(gitUsernameKey)
                 preferences.remove(gitTokenKey)
+                preferences.remove(gitCommitUserNameKey)
+                preferences.remove(gitCommitUserEmailKey)
             }
         }
     }
@@ -70,7 +82,15 @@ class SettingsManager(private val context: Context) {
     val gitToken: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[gitTokenKey] ?: ""
     }
-    
+
+    val gitCommitUserName: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[gitCommitUserNameKey] ?: ""
+    }
+
+    val gitCommitUserEmail: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[gitCommitUserEmailKey] ?: ""
+    }
+
     // ローカルオンリーモードの状態
     val isLocalOnlyMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[localOnlyModeKey] ?: false

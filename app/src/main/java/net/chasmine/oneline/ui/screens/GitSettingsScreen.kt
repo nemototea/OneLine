@@ -37,6 +37,8 @@ fun GitSettingsScreen(
     var repoUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var token by remember { mutableStateOf("") }
+    var commitUserName by remember { mutableStateOf("") }
+    var commitUserEmail by remember { mutableStateOf("") }
 
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -59,6 +61,8 @@ fun GitSettingsScreen(
                 repoUrl = state.repoUrl
                 username = state.username
                 token = state.token
+                commitUserName = state.commitUserName
+                commitUserEmail = state.commitUserEmail
             }
             is SettingsViewModel.UiState.SaveSuccess -> {
                 showSuccessDialog = true
@@ -173,13 +177,59 @@ fun GitSettingsScreen(
 
                     OutlinedTextField(
                         value = token,
-                        onValueChange = { 
+                        onValueChange = {
                             token = it
                             isValidationPassed = false
                         },
                         label = { Text("アクセストークン") },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // コミットユーザー情報セクション
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "📝 コミット情報",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "GitHubのコントリビュート履歴に正しく記録されるよう、コミット時に使用するユーザー名とメールアドレスを設定してください。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = commitUserName,
+                        onValueChange = { commitUserName = it },
+                        label = { Text("コミット用ユーザー名") },
+                        placeholder = { Text("例: Taro Yamada") },
+                        modifier = Modifier.fillMaxWidth(),
+                        supportingText = {
+                            Text("GitHubのコミット履歴に表示される名前")
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = commitUserEmail,
+                        onValueChange = { commitUserEmail = it },
+                        label = { Text("コミット用メールアドレス") },
+                        placeholder = { Text("例: taro@example.com") },
+                        modifier = Modifier.fillMaxWidth(),
+                        supportingText = {
+                            Text("GitHubアカウントに登録されているメールアドレスを推奨")
+                        }
                     )
 
                     // 検証ボタン
@@ -257,7 +307,7 @@ fun GitSettingsScreen(
                             } else {
                                 // 通常の保存処理
                                 scope.launch {
-                                    viewModel.saveSettings(repoUrl, username, token)
+                                    viewModel.saveSettings(repoUrl, username, token, commitUserName, commitUserEmail)
                                 }
                             }
                         },
@@ -379,11 +429,11 @@ fun GitSettingsScreen(
                             scope.launch {
                                 try {
                                     // まずGit設定を保存
-                                    viewModel.saveSettings(repoUrl, username, token)
-                                    
+                                    viewModel.saveSettings(repoUrl, username, token, commitUserName, commitUserEmail)
+
                                     // ローカルからGitへの移行を実行
                                     val result = repositoryManager.migrateToGitMode()
-                                    
+
                                     when (result) {
                                         is RepositoryManager.MigrationResult.Success -> {
                                             showSuccessDialog = true
