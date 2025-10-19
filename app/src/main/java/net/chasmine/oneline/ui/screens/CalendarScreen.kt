@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.repository.RepositoryManager
 import java.time.LocalDate
 import java.time.YearMonth
@@ -30,13 +33,16 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
-    onNavigateToEdit: (String) -> Unit
+    onNavigateToEdit: (String) -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
     val repositoryManager = remember { RepositoryManager.getInstance(context) }
+    val scope = rememberCoroutineScope()
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var diaryEntries by remember { mutableStateOf<Set<LocalDate>>(emptySet()) }
+    var isSyncing by remember { mutableStateOf(false) }
 
     // 日記エントリーを取得
     LaunchedEffect(currentMonth) {
@@ -55,6 +61,32 @@ fun CalendarScreen(
                             fontWeight = FontWeight.Bold
                         )
                     )
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                isSyncing = true
+                                repositoryManager.syncRepository()
+                                isSyncing = false
+                            }
+                        },
+                        enabled = !isSyncing
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Sync,
+                            contentDescription = "同期",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = "設定",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             )
         }

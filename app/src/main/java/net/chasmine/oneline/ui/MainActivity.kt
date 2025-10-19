@@ -443,6 +443,9 @@ fun OneLineApp(
             CalendarScreen(
                 onNavigateToEdit = { date ->
                     navController.navigate("diary_edit/$date")
+                },
+                onNavigateToSettings = {
+                    navController.navigate("settings")
                 }
             )
         }
