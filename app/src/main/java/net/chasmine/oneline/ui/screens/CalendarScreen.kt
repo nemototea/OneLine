@@ -103,7 +103,8 @@ fun CalendarScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp, bottom = 16.dp)
         ) {
             // 年月の切り替えヘッダー
             Row(
