@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,16 +47,21 @@ fun CustomBottomBar(
     onNewEntryClick: () -> Unit,
     isSyncing: Boolean = false
 ) {
+    // システムナビゲーションバーの高さを取得
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val totalHeight = 88.dp + bottomInset
+    val surfaceHeight = 72.dp + bottomInset
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(88.dp)
+            .height(totalHeight)
     ) {
         // iOS風の半透明背景を持つナビゲーションバー
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
+                .height(surfaceHeight)
                 .align(Alignment.BottomCenter),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             shadowElevation = 8.dp,
@@ -64,7 +70,8 @@ fun CustomBottomBar(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = bottomInset),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
