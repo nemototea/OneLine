@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -24,7 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.util.DiaryStatistics
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -42,11 +47,13 @@ fun CalendarScreen(
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var diaryEntries by remember { mutableStateOf<Set<LocalDate>>(emptySet()) }
+    var allEntries by remember { mutableStateOf<List<DiaryEntry>>(emptyList()) }
     var isSyncing by remember { mutableStateOf(false) }
 
     // 日記エントリーを取得
     LaunchedEffect(currentMonth) {
         repositoryManager.getAllEntries().collect { entries ->
+            allEntries = entries
             diaryEntries = entries.map { it.date }.toSet()
         }
     }
@@ -95,6 +102,7 @@ fun CalendarScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             // 年月の切り替えヘッダー
@@ -149,7 +157,7 @@ fun CalendarScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-        
+
             // カレンダーグリッド
             CalendarGrid(
                 currentMonth = currentMonth,
@@ -158,6 +166,14 @@ fun CalendarScreen(
                     val dateString = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     onNavigateToEdit(dateString)
                 }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 統計情報
+            DiaryStatisticsSection(
+                allEntries = allEntries,
+                currentMonth = currentMonth
             )
         }
     }
@@ -193,9 +209,12 @@ fun CalendarGrid(
     
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp), // 固定高を設定してスクロールコンテナとのネストを回避
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        userScrollEnabled = false // 親のColumnでスクロールするため無効化
     ) {
         items(calendarDays) { date ->
             CalendarDay(
@@ -274,6 +293,239 @@ fun CalendarDay(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
+        }
+    }
+}
+
+@Composable
+fun DiaryStatisticsSection(
+    allEntries: List<DiaryEntry>,
+    currentMonth: YearMonth
+) {
+    val currentStreak = remember(allEntries) {
+        DiaryStatistics.calculateCurrentStreak(allEntries)
+    }
+    val longestStreak = remember(allEntries) {
+        DiaryStatistics.calculateLongestStreak(allEntries)
+    }
+    val monthlyCount = remember(allEntries, currentMonth) {
+        DiaryStatistics.calculateMonthlyCount(allEntries, currentMonth)
+    }
+    val totalCount = remember(allEntries) {
+        DiaryStatistics.calculateTotalCount(allEntries)
+    }
+    val weeklyPattern = remember(allEntries) {
+        DiaryStatistics.getWeeklyPattern(allEntries)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "📊 投稿実績",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 1列目：現在のストリークと最長ストリーク
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "現在の連続",
+                    value = "$currentStreak",
+                    unit = "日",
+                    icon = "🔥"
+                )
+
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "最長連続",
+                    value = "$longestStreak",
+                    unit = "日",
+                    icon = "🏆"
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 週間パターングラフ（フル幅）
+            WeeklyPatternGraph(
+                pattern = weeklyPattern
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 2列目：今月の投稿数と総投稿数
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "今月",
+                    value = "$monthlyCount",
+                    unit = "投稿",
+                    icon = "📅"
+                )
+
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "総投稿数",
+                    value = "$totalCount",
+                    unit = "投稿",
+                    icon = "✨"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatisticsItem(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    unit: String,
+    icon: String
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = icon,
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 24.sp
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = unit,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun WeeklyPatternGraph(
+    pattern: List<Boolean>
+) {
+    val days = listOf("月", "火", "水", "木", "金", "土", "日")
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "📈 過去7日間",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // グラフ部分
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                pattern.forEachIndexed { index, hasEntry ->
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // バー
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(if (hasEntry) 40.dp else 8.dp)
+                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                                .background(
+                                    if (hasEntry)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                )
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // 曜日ラベル
+                        Text(
+                            text = days[index],
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (hasEntry)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }
