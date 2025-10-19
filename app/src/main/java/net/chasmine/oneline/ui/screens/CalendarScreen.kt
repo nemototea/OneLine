@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -24,7 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.util.DiaryStatistics
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -42,11 +45,13 @@ fun CalendarScreen(
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var diaryEntries by remember { mutableStateOf<Set<LocalDate>>(emptySet()) }
+    var allEntries by remember { mutableStateOf<List<DiaryEntry>>(emptyList()) }
     var isSyncing by remember { mutableStateOf(false) }
 
     // 日記エントリーを取得
     LaunchedEffect(currentMonth) {
         repositoryManager.getAllEntries().collect { entries ->
+            allEntries = entries
             diaryEntries = entries.map { it.date }.toSet()
         }
     }
@@ -149,7 +154,7 @@ fun CalendarScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-        
+
             // カレンダーグリッド
             CalendarGrid(
                 currentMonth = currentMonth,
@@ -158,6 +163,14 @@ fun CalendarScreen(
                     val dateString = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     onNavigateToEdit(dateString)
                 }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 統計情報
+            DiaryStatisticsSection(
+                allEntries = allEntries,
+                currentMonth = currentMonth
             )
         }
     }
@@ -273,6 +286,158 @@ fun CalendarDay(
                 text = date.dayOfMonth.toString(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            )
+        }
+    }
+}
+
+@Composable
+fun DiaryStatisticsSection(
+    allEntries: List<DiaryEntry>,
+    currentMonth: YearMonth
+) {
+    val currentStreak = remember(allEntries) {
+        DiaryStatistics.calculateCurrentStreak(allEntries)
+    }
+    val longestStreak = remember(allEntries) {
+        DiaryStatistics.calculateLongestStreak(allEntries)
+    }
+    val monthlyCount = remember(allEntries, currentMonth) {
+        DiaryStatistics.calculateMonthlyCount(allEntries, currentMonth)
+    }
+    val totalCount = remember(allEntries) {
+        DiaryStatistics.calculateTotalCount(allEntries)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "📊 投稿実績",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 2x2のグリッド
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 現在のストリーク
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "現在の連続",
+                    value = "$currentStreak",
+                    unit = "日",
+                    icon = "🔥"
+                )
+
+                // 最長ストリーク
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "最長連続",
+                    value = "$longestStreak",
+                    unit = "日",
+                    icon = "🏆"
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 今月の投稿数
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "今月",
+                    value = "$monthlyCount",
+                    unit = "投稿",
+                    icon = "📅"
+                )
+
+                // 総投稿数
+                StatisticsItem(
+                    modifier = Modifier.weight(1f),
+                    label = "総投稿数",
+                    value = "$totalCount",
+                    unit = "投稿",
+                    icon = "✨"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatisticsItem(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    unit: String,
+    icon: String
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = icon,
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 24.sp
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = unit,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }
