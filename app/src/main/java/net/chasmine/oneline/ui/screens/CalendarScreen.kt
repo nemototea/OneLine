@@ -2,6 +2,7 @@ package net.chasmine.oneline.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -315,8 +316,8 @@ fun DiaryStatisticsSection(
     val totalCount = remember(allEntries) {
         DiaryStatistics.calculateTotalCount(allEntries)
     }
-    val weeklyPattern = remember(allEntries) {
-        DiaryStatistics.getWeeklyPattern(allEntries)
+    val contributionData = remember(allEntries) {
+        DiaryStatistics.getContributionData(allEntries, weeks = 20)
     }
 
     Card(
@@ -362,9 +363,9 @@ fun DiaryStatisticsSection(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 週間パターングラフ（フル幅）
-            WeeklyPatternGraph(
-                pattern = weeklyPattern
+            // GitHubスタイルのコントリビューショングラフ（フル幅）
+            ContributionGraph(
+                contributionData = contributionData
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -458,8 +459,8 @@ fun StatisticsItem(
 }
 
 @Composable
-fun WeeklyPatternGraph(
-    pattern: List<Boolean>
+fun ContributionGraph(
+    contributionData: List<List<DiaryStatistics.ContributionDay?>>
 ) {
     val days = listOf("月", "火", "水", "木", "金", "土", "日")
 
@@ -479,7 +480,7 @@ fun WeeklyPatternGraph(
                 .padding(12.dp)
         ) {
             Text(
-                text = "📈 過去7日間",
+                text = "📊 投稿履歴",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -487,46 +488,124 @@ fun WeeklyPatternGraph(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // グラフ部分
+            // GitHub風のコントリビューショングラフ
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Bottom
+                horizontalArrangement = Arrangement.Start
             ) {
-                pattern.forEachIndexed { index, hasEntry ->
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // バー
+                // 曜日ラベル（縦）
+                Column(
+                    modifier = Modifier.padding(end = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    days.forEach { day ->
                         Box(
-                            modifier = Modifier
-                                .width(24.dp)
-                                .height(if (hasEntry) 40.dp else 8.dp)
-                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                                .background(
-                                    if (hasEntry)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.surfaceVariant
+                            modifier = Modifier.size(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = day,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontSize = 8.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                // グラフ部分（横スクロール可能）
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    contributionData.forEach { week ->
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            week.forEach { day ->
+                                ContributionCell(
+                                    day = day
                                 )
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        // 曜日ラベル
-                        Text(
-                            text = days[index],
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (hasEntry)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 10.sp
-                        )
+                            }
+                        }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 凡例
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "少",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 8.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+
+                // レベル0-4のサンプル
+                for (level in 0..4) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .padding(1.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(getContributionColor(level))
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                }
+
+                Text(
+                    text = "多",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 8.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun ContributionCell(
+    day: DiaryStatistics.ContributionDay?
+) {
+    val level = if (day != null) {
+        DiaryStatistics.getContributionLevel(day.characterCount)
+    } else {
+        -1 // 未来の日付
+    }
+
+    Box(
+        modifier = Modifier
+            .size(12.dp)
+            .clip(RoundedCornerShape(2.dp))
+            .background(
+                if (level >= 0) getContributionColor(level)
+                else Color.Transparent
+            )
+    )
+}
+
+@Composable
+fun getContributionColor(level: Int): Color {
+    val primary = MaterialTheme.colorScheme.primary
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+
+    return when (level) {
+        0 -> surfaceVariant
+        1 -> primary.copy(alpha = 0.25f)
+        2 -> primary.copy(alpha = 0.5f)
+        3 -> primary.copy(alpha = 0.75f)
+        4 -> primary
+        else -> Color.Transparent
     }
 }

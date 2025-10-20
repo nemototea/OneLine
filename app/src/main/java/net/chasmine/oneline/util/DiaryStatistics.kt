@@ -90,4 +90,71 @@ object DiaryStatistics {
             entryDates.contains(date)
         }
     }
+
+    /**
+     * GitHubスタイルのコントリビューショングラフ用のデータを取得
+     * @param entries 全日記エントリー
+     * @param weeks 表示する週数（デフォルト20週）
+     * @return 各日付の投稿情報（日付、文字数）
+     */
+    data class ContributionDay(
+        val date: LocalDate,
+        val characterCount: Int
+    )
+
+    fun getContributionData(entries: List<DiaryEntry>, weeks: Int = 20): List<List<ContributionDay?>> {
+        val today = LocalDate.now()
+
+        // エントリーを日付→文字数のマップに変換
+        val entryMap = entries.associate { it.date to it.content.length }
+
+        // 今日の曜日を取得（月曜日=1, 日曜日=7）
+        val todayDayOfWeek = today.dayOfWeek.value
+
+        // 最も古い日付を計算（今週の月曜日から weeks 週分遡る）
+        val mondayOfThisWeek = today.minusDays((todayDayOfWeek - 1).toLong())
+        val startDate = mondayOfThisWeek.minusWeeks((weeks - 1).toLong())
+
+        // 週ごとのデータを作成
+        val result = mutableListOf<List<ContributionDay?>>()
+
+        for (weekOffset in 0 until weeks) {
+            val weekStart = startDate.plusWeeks(weekOffset.toLong())
+            val week = mutableListOf<ContributionDay?>()
+
+            for (dayOffset in 0 until 7) {
+                val date = weekStart.plusDays(dayOffset.toLong())
+
+                // 未来の日付は null
+                if (date.isAfter(today)) {
+                    week.add(null)
+                } else {
+                    val charCount = entryMap[date] ?: 0
+                    week.add(ContributionDay(date, charCount))
+                }
+            }
+
+            result.add(week)
+        }
+
+        return result
+    }
+
+    /**
+     * 文字数に基づいて貢献度レベルを計算（0-4）
+     * - 0: 投稿なし
+     * - 1: 1-10文字
+     * - 2: 11-20文字
+     * - 3: 21-30文字
+     * - 4: 31文字以上
+     */
+    fun getContributionLevel(characterCount: Int): Int {
+        return when {
+            characterCount == 0 -> 0
+            characterCount <= 10 -> 1
+            characterCount <= 20 -> 2
+            characterCount <= 30 -> 3
+            else -> 4
+        }
+    }
 }
