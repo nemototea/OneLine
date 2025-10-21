@@ -2,6 +2,14 @@
 必ず日本語で回答してください。
 GitHubのリポジトリなので、GitHubのCLIが利用できます。
 リモートリポジトリのissueを確認してそのissueに着手するときは、「issue/[issue番号]_」というプレフィックスをつけた上で、適切なブランチ名を都度考えてブランチを切ってください。
+
+## Git Commit Rules
+**重要**: コミットメッセージには以下の署名を含めないこと:
+- `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
+- `Co-Authored-By: Claude <noreply@anthropic.com>`
+
+コミットメッセージは変更内容のみを簡潔に記述してください。
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 # OneLine - Architecture Overview
