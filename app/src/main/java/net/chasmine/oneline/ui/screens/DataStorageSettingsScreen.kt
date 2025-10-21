@@ -66,7 +66,7 @@ fun DataStorageSettingsScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
                 Column(
@@ -102,7 +102,7 @@ fun DataStorageSettingsScreen(
                                     "リポジトリ: ${gitRepoUrl.takeIf { it.isNotBlank() } ?: "未設定"}"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -120,9 +120,9 @@ fun DataStorageSettingsScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isLocalOnlyMode) 
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    else 
+                    containerColor = if (isLocalOnlyMode)
+                        MaterialTheme.colorScheme.primaryContainer
+                    else
                         MaterialTheme.colorScheme.surface
                 )
             ) {
@@ -152,7 +152,7 @@ fun DataStorageSettingsScreen(
                             Text(
                                 text = "端末内にのみ保存",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -169,9 +169,9 @@ fun DataStorageSettingsScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (!isLocalOnlyMode) 
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    else 
+                    containerColor = if (!isLocalOnlyMode)
+                        MaterialTheme.colorScheme.primaryContainer
+                    else
                         MaterialTheme.colorScheme.surface
                 )
             ) {
@@ -201,7 +201,7 @@ fun DataStorageSettingsScreen(
                             Text(
                                 text = "クラウドで自動バックアップ",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
