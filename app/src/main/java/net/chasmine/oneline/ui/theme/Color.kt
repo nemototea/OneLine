@@ -44,9 +44,15 @@ val DarkError = Color(0xFFFF453A)              // iOS風の赤（ダークモー
 val LightOutline = Color(0xFFE5E5EA)           // iOS風の薄いグレー - 境界線
 val DarkOutline = Color(0xFF38383A)            // iOS風の境界線（ダークモード）
 
-// 無効状態
-val LightOnSurfaceVariant = Color(0xFF8E8E93) // iOS風のグレー - 無効化されたテキスト
+// 無効状態・補助テキスト
+val LightOnSurfaceVariant = Color(0xFF3C3C43) // より濃いグレー - 視認性向上
 val DarkOnSurfaceVariant = Color(0xFF98989D)  // iOS風のグレー（ダークモード）
+
+// ダイアログ・コンテナ背景
+val LightSurfaceContainer = Color(0xFFFFFFFF)      // ダイアログ背景 - 純白
+val LightSurfaceContainerHigh = Color(0xFFFFFFFF)  // 高レベルコンテナ - 純白
+val DarkSurfaceContainer = Color(0xFF1C1C1E)       // ダイアログ背景
+val DarkSurfaceContainerHigh = Color(0xFF2C2C2E)   // 高レベルコンテナ
 
 // Swarm風の遊び心のあるアクセントカラー
 val SwarmBlue = Color(0xFF4A90E2)              // Swarm風のブルー

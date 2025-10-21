@@ -102,7 +102,7 @@ fun DataStorageSettingsScreen(
                                     "リポジトリ: ${gitRepoUrl.takeIf { it.isNotBlank() } ?: "未設定"}"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -152,7 +152,7 @@ fun DataStorageSettingsScreen(
                             Text(
                                 text = "端末内にのみ保存",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -201,7 +201,7 @@ fun DataStorageSettingsScreen(
                             Text(
                                 text = "クラウドで自動バックアップ",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
