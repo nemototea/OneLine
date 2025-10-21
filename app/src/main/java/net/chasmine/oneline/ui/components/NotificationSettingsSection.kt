@@ -65,8 +65,7 @@ fun NotificationSettingsSection() {
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        )
     ) {
         Column(
             modifier = Modifier.padding(20.dp), // カード内の余白を増加
