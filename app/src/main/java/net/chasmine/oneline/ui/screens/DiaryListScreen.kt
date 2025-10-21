@@ -200,7 +200,7 @@ fun DiaryListScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
                             )
                         ) {
                             Row(

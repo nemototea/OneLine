@@ -12,11 +12,13 @@ import androidx.compose.ui.graphics.Color
 val LightBackground = Color(0xFFF2F2F7)        // iOS標準のライトグレー背景
 val LightSurface = Color(0xFFFFFFFF)           // ピュアホワイト - カードやダイアログ
 val LightPrimary = Color(0xFFFF9500)           // iOS風のオレンジ - メインアクション（Swarmのアクセント）
-val LightSecondary = Color(0xFFFFCC00)         // ゴールデンイエロー - 日付などの補助情報
+val LightSecondary = Color(0xFFFF9500)         // オレンジ（primaryと統一して視認性向上）
 val LightTertiary = Color(0xFF34C759)          // iOS風のグリーン - アクセント、成功表示
 val LightOnSurface = Color(0xFF000000)         // ブラック - 本文テキスト
 val LightOnPrimary = Color(0xFFFFFFFF)         // ホワイト - プライマリボタン上のテキスト
-val LightSurfaceVariant = Color(0xFFF9F9F9)    // 極薄グレー - セクション背景
+val LightSurfaceVariant = Color(0xFFE8E8ED)    // より濃いグレー - セクション背景（視認性向上）
+val LightPrimaryContainer = Color(0xFFFFE5CC)  // オレンジ系の薄い背景 - カード強調用
+val LightSecondaryContainer = Color(0xFFFFF4D9) // 淡い黄色 - 補助的な背景
 
 // ダークテーマ - iOS風の深く洗練された印象
 val DarkBackground = Color(0xFF000000)         // iOS標準のピュアブラック背景
@@ -27,6 +29,8 @@ val DarkTertiary = Color(0xFF32D74B)           // iOS風のグリーン（ダー
 val DarkOnSurface = Color(0xFFFFFFFF)          // ホワイト - 本文テキスト
 val DarkOnPrimary = Color(0xFF000000)          // ブラック - プライマリボタン上のテキスト
 val DarkSurfaceVariant = Color(0xFF2C2C2E)     // iOS風の第2レベルサーフェス
+val DarkPrimaryContainer = Color(0xFF4D2800)   // オレンジ系の暗い背景 - カード強調用
+val DarkSecondaryContainer = Color(0xFF4D4000) // 黄色系の暗い背景 - 補助的な背景
 
 // ==========================================
 // 追加の補助カラー（iOS風）
