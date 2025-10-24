@@ -158,7 +158,7 @@ fun OneLineApp(
     var showGitConfigDialog by remember { mutableStateOf(false) }
     
     // 初回起動判定
-    var isFirstLaunch by remember { mutableStateOf(true) }
+    var isFirstLaunch by remember { mutableStateOf<Boolean?>(null) }
     var hasValidSettings by remember { mutableStateOf(false) }
     
     // ボトムナビゲーション用の状態
@@ -168,6 +168,17 @@ fun OneLineApp(
     LaunchedEffect(Unit) {
         hasValidSettings = repositoryManager.hasValidSettings()
         isFirstLaunch = !hasValidSettings
+    }
+    
+    // 設定確認中はローディング画面を表示
+    if (isFirstLaunch == null) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            // ローディング状態は何も表示しない（空白画面）
+        }
+        return
     }
 
     // Git設定チェック関数
@@ -316,7 +327,7 @@ fun OneLineApp(
     ) { paddingValues ->
         NavHost(
             navController = navController, 
-            startDestination = if (isFirstLaunch && !fromWidget) "welcome" else "diary_list",
+            startDestination = if (isFirstLaunch!! && !fromWidget) "welcome" else "diary_list",
             modifier = Modifier.padding(paddingValues),
             enterTransition = {
                 val isBottomNavTransition = initialState.destination.route in listOf("diary_list", "calendar") &&
