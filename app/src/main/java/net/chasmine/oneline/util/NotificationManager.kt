@@ -30,22 +30,20 @@ class DiaryNotificationManager(private val context: Context) {
     }
     
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "日記リマインダー"
-            val descriptionText = "日記を書くリマインダー通知"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-                enableVibration(true)
-                enableLights(true)
-            }
-            
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-            
-            Log.d(TAG, "通知チャンネルを作成しました: $CHANNEL_ID")
+        val name = "日記リマインダー"
+        val descriptionText = "日記を書くリマインダー通知"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+            description = descriptionText
+            enableVibration(true)
+            enableLights(true)
         }
+
+        val notificationManager: NotificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+
+        Log.d(TAG, "通知チャンネルを作成しました: $CHANNEL_ID")
     }
     
     fun scheduleDaily(hour: Int, minute: Int) {
@@ -87,19 +85,11 @@ class DiaryNotificationManager(private val context: Context) {
         Log.d(TAG, "次回通知予定時刻: ${calendar.time}")
         
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
-            } else {
-                alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
-            }
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
             Log.d(TAG, "アラームを正常にスケジュールしました")
         } catch (e: Exception) {
             Log.e(TAG, "アラームのスケジュールに失敗しました", e)
@@ -181,7 +171,7 @@ class DiaryNotificationManager(private val context: Context) {
         )
         
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle("今日の一行を書きませんか？")
             .setContentText("今日はどんな一日でしたか？日記を書いて記録しましょう。")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
