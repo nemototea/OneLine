@@ -181,7 +181,7 @@ class DiaryNotificationManager(private val context: Context) {
         )
         
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle("今日の一行を書きませんか？")
             .setContentText("今日はどんな一日でしたか？日記を書いて記録しましょう。")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
