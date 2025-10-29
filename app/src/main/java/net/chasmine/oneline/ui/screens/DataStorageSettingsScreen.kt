@@ -138,13 +138,13 @@ fun DataStorageSettingsScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "📱 ローカル保存のみ",
+                                text = "ローカル保存のみ",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "✅ 設定不要ですぐ使える\n✅ 完全プライベート\n⚠️ 端末紛失でデータ消失",
+                                text = "• 設定不要ですぐ使える\n• 完全プライベート\n• 端末紛失でデータ消失のリスク",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -188,13 +188,13 @@ fun DataStorageSettingsScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "☁️ Git連携",
+                                text = "Git連携",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "✅ 自動バックアップ\n✅ 複数端末で同期\n⚠️ GitHubの設定が必要",
+                                text = "• 自動バックアップ\n• 複数端末で同期\n• GitHubの設定が必要",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
