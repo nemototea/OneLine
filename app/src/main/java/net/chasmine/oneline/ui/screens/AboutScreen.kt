@@ -34,6 +34,7 @@ fun AboutScreen(
         topBar = {
             TopAppBar(
                 title = { Text("アプリについて") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

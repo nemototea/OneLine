@@ -44,6 +44,7 @@ fun DataStorageSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("データ保存設定") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

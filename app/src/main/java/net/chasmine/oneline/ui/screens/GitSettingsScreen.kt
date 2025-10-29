@@ -100,6 +100,7 @@ fun GitSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text(if (isInitialSetup) "Git連携の設定" else "データ同期設定") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     if (!isInitialSetup) {
                         IconButton(onClick = onNavigateBack) {

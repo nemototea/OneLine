@@ -23,6 +23,7 @@ fun NotificationSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("通知設定") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
