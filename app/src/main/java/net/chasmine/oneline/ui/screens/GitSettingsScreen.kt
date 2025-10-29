@@ -401,10 +401,10 @@ fun GitSettingsScreen(
                             migrationInProgress = true
                             scope.launch {
                                 try {
-                                    // まずGit設定を保存
-                                    viewModel.saveSettings(repoUrl, username, token, commitUserName, commitUserEmail)
+                                    // まずGit設定だけを保存（リポジトリ初期化はmigrateToGitModeで行う）
+                                    settingsManager.saveGitSettings(repoUrl, username, token, commitUserName, commitUserEmail)
 
-                                    // ローカルからGitへの移行を実行
+                                    // ローカルからGitへの移行を実行（内部でリポジトリ初期化も行われる）
                                     val result = repositoryManager.migrateToGitMode()
 
                                     when (result) {
