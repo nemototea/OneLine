@@ -386,7 +386,7 @@ fun OneLineApp(
                     }
                 },
                 onGitModeSelected = {
-                    navController.navigate("git_settings") {
+                    navController.navigate("git_settings?initialSetup=true") {
                         popUpTo("welcome") { inclusive = true }
                     }
                 }
@@ -434,9 +434,24 @@ fun OneLineApp(
             )
         }
 
-        composable("git_settings") {
+        composable(
+            route = "git_settings?initialSetup={initialSetup}",
+            arguments = listOf(
+                navArgument("initialSetup") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            )
+        ) { backStackEntry ->
+            val isInitialSetup = backStackEntry.arguments?.getBoolean("initialSetup") ?: false
             GitSettingsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onSetupComplete = {
+                    navController.navigate("diary_list") {
+                        popUpTo("git_settings?initialSetup={initialSetup}") { inclusive = true }
+                    }
+                },
+                isInitialSetup = isInitialSetup
             )
         }
 

@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun GitSettingsScreen(
     onNavigateBack: () -> Unit,
+    onSetupComplete: (() -> Unit)? = null,
+    isInitialSetup: Boolean = false,
     viewModel: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -65,7 +67,13 @@ fun GitSettingsScreen(
                 commitUserEmail = state.commitUserEmail
             }
             is SettingsViewModel.UiState.SaveSuccess -> {
-                showSuccessDialog = true
+                if (isInitialSetup) {
+                    // 初回セットアップ時は自動遷移
+                    onSetupComplete?.invoke()
+                } else {
+                    // 設定変更時はダイアログ表示
+                    showSuccessDialog = true
+                }
             }
             is SettingsViewModel.UiState.Error -> {
                 errorMessage = state.message
@@ -89,13 +97,15 @@ fun GitSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("データ同期設定") },
+                title = { Text(if (isInitialSetup) "Git連携の設定" else "データ同期設定") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "戻る"
-                        )
+                    if (!isInitialSetup) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "戻る"
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -134,17 +144,17 @@ fun GitSettingsScreen(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
                         )
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "💡 重要",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary
+                                text = "💡",
+                                style = MaterialTheme.typography.titleMedium
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "日記専用のリポジトリを使用してください。既存のプロジェクトリポジトリは使用しないでください。",
+                                text = "日記専用のリポジトリを使用してください",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -186,50 +196,28 @@ fun GitSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // コミットユーザー情報セクション
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "📝 コミット情報",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "GitHubのコントリビュート履歴に正しく記録されるよう、コミット時に使用するユーザー名とメールアドレスを設定してください。",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
                     OutlinedTextField(
                         value = commitUserName,
-                        onValueChange = { commitUserName = it },
-                        label = { Text("コミット用ユーザー名") },
+                        onValueChange = {
+                            commitUserName = it
+                            isValidationPassed = false
+                        },
+                        label = { Text("コミット用ユーザー名（必須）") },
                         placeholder = { Text("例: Taro Yamada") },
                         modifier = Modifier.fillMaxWidth(),
-                        supportingText = {
-                            Text("GitHubのコミット履歴に表示される名前")
-                        }
+                        isError = commitUserName.isBlank() && repoUrl.isNotBlank()
                     )
 
                     OutlinedTextField(
                         value = commitUserEmail,
-                        onValueChange = { commitUserEmail = it },
-                        label = { Text("コミット用メールアドレス") },
+                        onValueChange = {
+                            commitUserEmail = it
+                            isValidationPassed = false
+                        },
+                        label = { Text("コミット用メールアドレス（必須）") },
                         placeholder = { Text("例: taro@example.com") },
                         modifier = Modifier.fillMaxWidth(),
-                        supportingText = {
-                            Text("GitHubアカウントに登録されているメールアドレスを推奨")
-                        }
+                        isError = commitUserEmail.isBlank() && repoUrl.isNotBlank()
                     )
 
                     // 検証ボタン
@@ -240,12 +228,13 @@ fun GitSettingsScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = repoUrl.isNotEmpty() && username.isNotEmpty() && token.isNotEmpty() && 
+                        enabled = repoUrl.isNotEmpty() && username.isNotEmpty() && token.isNotEmpty() &&
+                                 commitUserName.isNotEmpty() && commitUserEmail.isNotEmpty() &&
                                  uiState !is SettingsViewModel.UiState.Validating,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isValidationPassed) 
-                                MaterialTheme.colorScheme.primary 
-                            else 
+                            containerColor = if (isValidationPassed)
+                                MaterialTheme.colorScheme.primary
+                            else
                                 MaterialTheme.colorScheme.secondary
                         )
                     ) {
@@ -261,32 +250,6 @@ fun GitSettingsScreen(
                             Text("✅ 検証済み - 再検証")
                         } else {
                             Text("🔍 リポジトリを検証")
-                        }
-                    }
-
-                    // 検証状態の表示
-                    if (isValidationPassed) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "✅",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "リポジトリの検証が完了しました。設定を保存できます。",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
                         }
                     }
 
@@ -316,20 +279,14 @@ fun GitSettingsScreen(
                     ) {
                         if (isValidationPassed) {
                             if (isLocalOnlyMode) {
-                                Text("ローカルデータをGit連携に移行")
+                                Text("✅ Git連携に移行して保存")
                             } else {
-                                Text("設定を保存する")
+                                Text("✅ 設定を保存")
                             }
                         } else {
-                            Text("まずリポジトリを検証してください")
+                            Text("リポジトリを検証")
                         }
                     }
-
-                    Text(
-                        text = "※ Gitリポジトリへのアクセスには、GitHubなどのアクセストークンが必要です。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }
@@ -428,15 +385,21 @@ fun GitSettingsScreen(
                             migrationInProgress = true
                             scope.launch {
                                 try {
-                                    // まずGit設定を保存
-                                    viewModel.saveSettings(repoUrl, username, token, commitUserName, commitUserEmail)
+                                    // まずGit設定だけを保存（リポジトリ初期化はmigrateToGitModeで行う）
+                                    settingsManager.saveGitSettings(repoUrl, username, token, commitUserName, commitUserEmail)
 
-                                    // ローカルからGitへの移行を実行
+                                    // ローカルからGitへの移行を実行（内部でリポジトリ初期化も行われる）
                                     val result = repositoryManager.migrateToGitMode()
 
                                     when (result) {
                                         is RepositoryManager.MigrationResult.Success -> {
-                                            showSuccessDialog = true
+                                            if (isInitialSetup) {
+                                                // 初回セットアップ時は自動遷移
+                                                onSetupComplete?.invoke()
+                                            } else {
+                                                // 設定変更時はダイアログ表示
+                                                showSuccessDialog = true
+                                            }
                                         }
                                         else -> {
                                             errorMessage = result.getErrorMessage()
