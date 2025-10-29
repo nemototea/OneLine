@@ -134,17 +134,17 @@ fun GitSettingsScreen(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
                         )
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "💡 重要",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary
+                                text = "💡",
+                                style = MaterialTheme.typography.titleMedium
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "日記専用のリポジトリを使用してください。既存のプロジェクトリポジトリは使用しないでください。",
+                                text = "日記専用のリポジトリを使用してください",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -186,50 +186,28 @@ fun GitSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // コミットユーザー情報セクション
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "📝 コミット情報",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "GitHubのコントリビュート履歴に正しく記録されるよう、コミット時に使用するユーザー名とメールアドレスを設定してください。",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
                     OutlinedTextField(
                         value = commitUserName,
-                        onValueChange = { commitUserName = it },
-                        label = { Text("コミット用ユーザー名") },
+                        onValueChange = {
+                            commitUserName = it
+                            isValidationPassed = false
+                        },
+                        label = { Text("コミット用ユーザー名（必須）") },
                         placeholder = { Text("例: Taro Yamada") },
                         modifier = Modifier.fillMaxWidth(),
-                        supportingText = {
-                            Text("GitHubのコミット履歴に表示される名前")
-                        }
+                        isError = commitUserName.isBlank() && repoUrl.isNotBlank()
                     )
 
                     OutlinedTextField(
                         value = commitUserEmail,
-                        onValueChange = { commitUserEmail = it },
-                        label = { Text("コミット用メールアドレス") },
+                        onValueChange = {
+                            commitUserEmail = it
+                            isValidationPassed = false
+                        },
+                        label = { Text("コミット用メールアドレス（必須）") },
                         placeholder = { Text("例: taro@example.com") },
                         modifier = Modifier.fillMaxWidth(),
-                        supportingText = {
-                            Text("GitHubアカウントに登録されているメールアドレスを推奨")
-                        }
+                        isError = commitUserEmail.isBlank() && repoUrl.isNotBlank()
                     )
 
                     // 検証ボタン
@@ -240,12 +218,13 @@ fun GitSettingsScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = repoUrl.isNotEmpty() && username.isNotEmpty() && token.isNotEmpty() && 
+                        enabled = repoUrl.isNotEmpty() && username.isNotEmpty() && token.isNotEmpty() &&
+                                 commitUserName.isNotEmpty() && commitUserEmail.isNotEmpty() &&
                                  uiState !is SettingsViewModel.UiState.Validating,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isValidationPassed) 
-                                MaterialTheme.colorScheme.primary 
-                            else 
+                            containerColor = if (isValidationPassed)
+                                MaterialTheme.colorScheme.primary
+                            else
                                 MaterialTheme.colorScheme.secondary
                         )
                     ) {
@@ -316,20 +295,14 @@ fun GitSettingsScreen(
                     ) {
                         if (isValidationPassed) {
                             if (isLocalOnlyMode) {
-                                Text("ローカルデータをGit連携に移行")
+                                Text("✅ Git連携に移行して保存")
                             } else {
-                                Text("設定を保存する")
+                                Text("✅ 設定を保存")
                             }
                         } else {
-                            Text("まずリポジトリを検証してください")
+                            Text("リポジトリを検証")
                         }
                     }
-
-                    Text(
-                        text = "※ Gitリポジトリへのアクセスには、GitHubなどのアクセストークンが必要です。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }

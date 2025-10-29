@@ -1,5 +1,6 @@
 package net.chasmine.oneline.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -69,56 +70,48 @@ fun DataStorageSettingsScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = "現在の設定",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        imageVector = if (isLocalOnlyMode) Icons.Default.Phone else Icons.Default.Cloud,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
                     )
-                    
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isLocalOnlyMode) Icons.Default.Phone else Icons.Default.Cloud,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+
+                    Column {
+                        Text(
+                            text = if (isLocalOnlyMode) "📱 ローカル保存のみ" else "☁️ Git連携",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
-                        
-                        Column {
-                            Text(
-                                text = if (isLocalOnlyMode) "📱 ローカル保存のみ" else "☁️ Git連携",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = if (isLocalOnlyMode) {
-                                    "端末内にのみ保存されています"
-                                } else {
-                                    "リポジトリ: ${gitRepoUrl.takeIf { it.isNotBlank() } ?: "未設定"}"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(
+                            text = if (isLocalOnlyMode) {
+                                "端末内にのみ保存"
+                            } else {
+                                gitRepoUrl.takeIf { it.isNotBlank() }?.let {
+                                    // URLから簡潔な表示を生成
+                                    it.substringAfterLast("/").removeSuffix(".git")
+                                } ?: "未設定"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
 
-            // 保存方法の選択
-            Text(
-                text = "保存方法を選択",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-
             // ローカル保存オプション
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (!isLocalOnlyMode) {
+                            showMigrationDialog = true
+                        }
+                    },
                 colors = CardDefaults.cardColors(
                     containerColor = if (isLocalOnlyMode)
                         MaterialTheme.colorScheme.primaryContainer
@@ -142,32 +135,33 @@ fun DataStorageSettingsScreen(
                                 }
                             }
                         )
-                        
+
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "📱 ローカル保存のみ",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "端末内にのみ保存",
+                                text = "✅ 設定不要ですぐ使える\n✅ 完全プライベート\n⚠️ 端末紛失でデータ消失",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    
-                    Text(
-                        text = "✅ 設定不要ですぐに使用可能\n✅ プライベートで安全\n⚠️ バックアップや同期は手動\n⚠️ 端末紛失時にデータが失われる",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 48.dp)
-                    )
                 }
             }
 
             // Git連携オプション
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (isLocalOnlyMode) {
+                            onNavigateToGitSettings()
+                        }
+                    },
                 colors = CardDefaults.cardColors(
                     containerColor = if (!isLocalOnlyMode)
                         MaterialTheme.colorScheme.primaryContainer
@@ -191,26 +185,21 @@ fun DataStorageSettingsScreen(
                                 }
                             }
                         )
-                        
+
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "☁️ Git連携",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "クラウドで自動バックアップ",
+                                text = "✅ 自動バックアップ\n✅ 複数端末で同期\n⚠️ GitHubの設定が必要",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    
-                    Text(
-                        text = "✅ 自動バックアップ\n✅ 複数端末での同期\n✅ バージョン管理\n⚠️ GitHubなどの設定が必要",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 48.dp)
-                    )
                     
                     if (!isLocalOnlyMode && gitRepoUrl.isBlank()) {
                         Card(

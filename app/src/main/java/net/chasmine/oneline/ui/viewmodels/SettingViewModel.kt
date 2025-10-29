@@ -118,11 +118,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     message = message
                 )
                 
-                _uiState.value = UiState.ValidationResult(
-                    result = validationResult,
-                    message = message
-                )
-                
             } catch (e: Exception) {
                 _uiState.value = UiState.ValidationResult(
                     result = GitRepository.ValidationResult.VALIDATION_FAILED,
