@@ -3,14 +3,13 @@ package net.chasmine.oneline.ui.screens
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.automirrored.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -153,12 +152,11 @@ fun AboutScreen(
 
             // リポジトリ情報
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(repositoryUrl))
-                        context.startActivity(intent)
-                    },
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(repositoryUrl))
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
@@ -185,7 +183,7 @@ fun AboutScreen(
                         )
                     }
                     Icon(
-                        imageVector = Icons.Default.OpenInBrowser,
+                        imageVector = Icons.AutoMirrored.Filled.ChevronRight,
                         contentDescription = "リポジトリを開く",
                         tint = MaterialTheme.colorScheme.primary
                     )
