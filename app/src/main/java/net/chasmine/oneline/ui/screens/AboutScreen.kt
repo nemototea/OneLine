@@ -83,17 +83,18 @@ fun AboutScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "📖 OneLineについて",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "OneLineは、毎日の出来事を一行で記録するシンプルな日記アプリです。GitHubリポジトリと連携することで、あなたの日記を安全にバックアップし、どこからでもアクセスできます。",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "毎日の出来事を一行で記録するシンプルな日記アプリです。GitHubリポジトリと連携することで、安全にバックアップできます。",
+                        style = MaterialTheme.typography.bodyLarge,
+                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.3f
                     )
                 }
             }
@@ -106,15 +107,15 @@ fun AboutScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "✨ 主な機能",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
+
                     val features = listOf(
                         "📝 シンプルな日記作成・編集",
                         "📦 GitHubリポジトリとの自動同期",
@@ -122,12 +123,12 @@ fun AboutScreen(
                         "📱 ホーム画面ウィジェット",
                         "🔒 プライベートリポジトリ対応"
                     )
-                    
+
                     features.forEach { feature ->
                         Text(
                             text = feature,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 2.dp)
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(vertical = 4.dp)
                         )
                     }
                 }
@@ -141,17 +142,18 @@ fun AboutScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "👨‍💻 開発者",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "このアプリは個人開発プロジェクトです。\nフィードバックやご要望がございましたら、GitHubリポジトリまでお寄せください。",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "個人開発プロジェクトです。\nフィードバックやご要望はGitHubリポジトリまで。",
+                        style = MaterialTheme.typography.bodyLarge,
+                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.3f
                     )
                 }
             }
@@ -164,17 +166,18 @@ fun AboutScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "📄 ライセンス",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "このアプリはオープンソースソフトウェアです。\n使用しているライブラリのライセンス情報については、GitHubリポジトリをご確認ください。",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "オープンソースソフトウェアです。\nライブラリのライセンス情報はGitHubリポジトリをご確認ください。",
+                        style = MaterialTheme.typography.bodyLarge,
+                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.3f
                     )
                 }
             }

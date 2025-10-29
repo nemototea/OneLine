@@ -68,8 +68,8 @@ fun NotificationSettingsSection() {
         )
     ) {
         Column(
-            modifier = Modifier.padding(20.dp), // カード内の余白を増加
-            verticalArrangement = Arrangement.spacedBy(20.dp) // 要素間の余白を増加
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // 権限拒否時の案内
             if (showPermissionDeniedInfo) {
@@ -80,17 +80,17 @@ fun NotificationSettingsSection() {
                     )
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
                             text = "⚠️ 通知権限が必要です",
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.error
                         )
                         Text(
-                            text = "日記リマインダーを受け取るには、端末の設定から通知権限を有効にしてください。",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = "端末の設定から通知権限を有効にしてください。",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                         Button(
@@ -122,18 +122,18 @@ fun NotificationSettingsSection() {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(end = 16.dp) // Switchとの間に適切な余白を確保
+                        .padding(end = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
                         text = "日記リマインダー",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "毎日決まった時間に日記を書くリマインダーを受け取る",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "毎日決まった時間にリマインダーを受け取る",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                     )
                 }
                 
@@ -172,10 +172,10 @@ fun NotificationSettingsSection() {
             // 時間設定
             if (isNotificationEnabled) {
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(vertical = 12.dp),
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
-                
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -192,23 +192,23 @@ fun NotificationSettingsSection() {
                                 true
                             ).show()
                         }
-                        .padding(vertical = 12.dp), // より適切な縦方向の余白
+                        .padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(end = 16.dp) // 時刻表示との間に余白を確保
+                            .padding(end = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
                             text = "通知時刻",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 4.dp)
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Text(
                             text = "タップして時刻を変更",
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -232,7 +232,7 @@ fun NotificationSettingsSection() {
             // テスト通知ボタン（デバッグ用）
             if (isNotificationEnabled) {
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(vertical = 12.dp),
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
                 

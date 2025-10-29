@@ -135,17 +135,17 @@ fun GitSettingsScreen(
                         )
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Text(
                                 text = "💡 重要",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "日記専用のリポジトリを使用してください。既存のプロジェクトリポジトリは使用しないでください。",
-                                style = MaterialTheme.typography.bodySmall
+                                text = "日記専用のリポジトリを使用してください。",
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -153,25 +153,28 @@ fun GitSettingsScreen(
                     // Git設定フォーム
                     OutlinedTextField(
                         value = repoUrl,
-                        onValueChange = { 
+                        onValueChange = {
                             repoUrl = it
                             isValidationPassed = false
                         },
-                        label = { Text("日記リポジトリURL") },
+                        label = { Text("日記リポジトリURL", style = MaterialTheme.typography.bodyLarge) },
                         placeholder = { Text("https://github.com/username/my-diary.git") },
                         modifier = Modifier.fillMaxWidth(),
                         supportingText = {
-                            Text("日記データを保存するGitHubリポジトリのURLを入力してください")
+                            Text(
+                                "日記データを保存するGitHubリポジトリのURL",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     )
 
                     OutlinedTextField(
                         value = username,
-                        onValueChange = { 
+                        onValueChange = {
                             username = it
                             isValidationPassed = false
                         },
-                        label = { Text("ユーザー名") },
+                        label = { Text("ユーザー名", style = MaterialTheme.typography.bodyLarge) },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -181,7 +184,7 @@ fun GitSettingsScreen(
                             token = it
                             isValidationPassed = false
                         },
-                        label = { Text("アクセストークン") },
+                        label = { Text("アクセストークン", style = MaterialTheme.typography.bodyLarge) },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -194,17 +197,17 @@ fun GitSettingsScreen(
                         )
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier = Modifier.padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Text(
                                 text = "📝 コミット情報",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "GitHubのコントリビュート履歴に正しく記録されるよう、コミット時に使用するユーザー名とメールアドレスを設定してください。",
-                                style = MaterialTheme.typography.bodySmall,
+                                text = "コミット時に使用するユーザー名とメールアドレスを設定してください。",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -213,22 +216,28 @@ fun GitSettingsScreen(
                     OutlinedTextField(
                         value = commitUserName,
                         onValueChange = { commitUserName = it },
-                        label = { Text("コミット用ユーザー名") },
+                        label = { Text("コミット用ユーザー名", style = MaterialTheme.typography.bodyLarge) },
                         placeholder = { Text("例: Taro Yamada") },
                         modifier = Modifier.fillMaxWidth(),
                         supportingText = {
-                            Text("GitHubのコミット履歴に表示される名前")
+                            Text(
+                                "GitHubのコミット履歴に表示される名前",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     )
 
                     OutlinedTextField(
                         value = commitUserEmail,
                         onValueChange = { commitUserEmail = it },
-                        label = { Text("コミット用メールアドレス") },
+                        label = { Text("コミット用メールアドレス", style = MaterialTheme.typography.bodyLarge) },
                         placeholder = { Text("例: taro@example.com") },
                         modifier = Modifier.fillMaxWidth(),
                         supportingText = {
-                            Text("GitHubアカウントに登録されているメールアドレスを推奨")
+                            Text(
+                                "GitHubアカウントに登録されているメールアドレス",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     )
 

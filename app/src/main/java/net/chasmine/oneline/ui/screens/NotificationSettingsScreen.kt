@@ -45,18 +45,18 @@ fun NotificationSettingsScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp), // カード内の余白を増加
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "🔔 通知について",
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "毎日決まった時間に日記を書くリマインダーを受け取ることができます。既に日記を書いている場合は通知されません。",
-                        style = MaterialTheme.typography.bodySmall,
-                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                        text = "毎日決まった時間に日記を書くリマインダーを受け取れます。",
+                        style = MaterialTheme.typography.bodyMedium,
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                     )
                 }
             }
@@ -74,19 +74,19 @@ fun NotificationSettingsScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp), // カード内の余白を増加
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "⚠️ 注意事項",
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error
                     )
                     Text(
-                        text = "• Android 13以降では通知権限の許可が必要です\n• バッテリー最適化の設定により通知が遅延する場合があります\n• 端末の省電力モードでは通知が制限される場合があります",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "• Android 13以降では通知権限の許可が必要です\n• バッテリー最適化により通知が遅延する場合があります\n• 省電力モードでは通知が制限される場合があります",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                     )
                 }
             }

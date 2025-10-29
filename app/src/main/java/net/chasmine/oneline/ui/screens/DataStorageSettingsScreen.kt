@@ -70,38 +70,41 @@ fun DataStorageSettingsScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
                         text = "現在の設定",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Icon(
                             imageVector = if (isLocalOnlyMode) Icons.Default.Phone else Icons.Default.Cloud,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
                         )
-                        
-                        Column {
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             Text(
                                 text = if (isLocalOnlyMode) "📱 ローカル保存のみ" else "☁️ Git連携",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = if (isLocalOnlyMode) {
-                                    "端末内にのみ保存されています"
+                                    "端末内にのみ保存"
                                 } else {
                                     "リポジトリ: ${gitRepoUrl.takeIf { it.isNotBlank() } ?: "未設定"}"
                                 },
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -112,7 +115,7 @@ fun DataStorageSettingsScreen(
             // 保存方法の選択
             Text(
                 text = "保存方法を選択",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
 
@@ -127,12 +130,12 @@ fun DataStorageSettingsScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         RadioButton(
                             selected = isLocalOnlyMode,
@@ -142,25 +145,29 @@ fun DataStorageSettingsScreen(
                                 }
                             }
                         )
-                        
-                        Column(modifier = Modifier.weight(1f)) {
+
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             Text(
                                 text = "📱 ローカル保存のみ",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = "端末内にのみ保存",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    
+
                     Text(
-                        text = "✅ 設定不要ですぐに使用可能\n✅ プライベートで安全\n⚠️ バックアップや同期は手動\n⚠️ 端末紛失時にデータが失われる",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 48.dp)
+                        text = "✅ 設定不要\n✅ プライベート\n⚠️ バックアップは手動\n⚠️ 端末紛失時に失われる",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 48.dp),
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.5f
                     )
                 }
             }
@@ -176,12 +183,12 @@ fun DataStorageSettingsScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         RadioButton(
                             selected = !isLocalOnlyMode,
@@ -192,24 +199,28 @@ fun DataStorageSettingsScreen(
                             }
                         )
                         
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             Text(
                                 text = "☁️ Git連携",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = "クラウドで自動バックアップ",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                     
                     Text(
-                        text = "✅ 自動バックアップ\n✅ 複数端末での同期\n✅ バージョン管理\n⚠️ GitHubなどの設定が必要",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 48.dp)
+                        text = "✅ 自動バックアップ\n✅ 複数端末で同期\n✅ バージョン管理\n⚠️ Git設定が必要",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 48.dp),
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.5f
                     )
                     
                     if (!isLocalOnlyMode && gitRepoUrl.isBlank()) {
@@ -219,18 +230,19 @@ fun DataStorageSettingsScreen(
                             )
                         ) {
                             Row(
-                                modifier = Modifier.padding(12.dp),
+                                modifier = Modifier.padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Warning,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(24.dp)
                                 )
                                 Text(
                                     text = "Git設定が必要です",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                             }
