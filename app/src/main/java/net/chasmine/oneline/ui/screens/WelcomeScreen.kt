@@ -3,6 +3,7 @@ package net.chasmine.oneline.ui.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -245,14 +246,14 @@ private fun DataStorageSelectionPage(
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
-        
+        Spacer(modifier = Modifier.height(16.dp))
+
         // アプリロゴ・タイトル
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = "OneLine へようこそ",
@@ -260,12 +261,12 @@ private fun DataStorageSelectionPage(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-            
+
             Text(
                 text = "データの保存方法を選択してください",
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -275,20 +276,21 @@ private fun DataStorageSelectionPage(
         ) {
             // ローカル保存オプション
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        scope.launch {
+                            settingsManager.setLocalOnlyMode(true)
+                            onLocalModeSelected()
+                        }
+                    },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                onClick = {
-                    scope.launch {
-                        settingsManager.setLocalOnlyMode(true)
-                        onLocalModeSelected()
-                    }
-                }
+                )
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -298,49 +300,38 @@ private fun DataStorageSelectionPage(
                             imageVector = Icons.Default.Phone,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(28.dp)
                         )
-                        
+
                         Column {
                             Text(
-                                text = "📱 ローカル保存のみ",
+                                text = "📱 ローカル保存のみ（推奨）",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "端末内にのみ保存（推奨）",
+                                text = "✅ 設定不要ですぐ使える\n✅ 完全プライベート",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    
-                    Text(
-                        text = "✅ 設定不要ですぐに使用開始\n✅ プライベートで安全\n✅ シンプルで軽快",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 44.dp)
-                    )
-                    
-                    Text(
-                        text = "※ 後からGit連携に変更することも可能です",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 44.dp)
-                    )
                 }
             }
 
             // Git連携オプション
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onGitModeSelected() },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
-                ),
-                onClick = onGitModeSelected
+                )
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -349,42 +340,28 @@ private fun DataStorageSelectionPage(
                         Icon(
                             imageVector = Icons.Default.Cloud,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            modifier = Modifier.size(32.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(28.dp)
                         )
-                        
+
                         Column {
                             Text(
                                 text = "☁️ Git連携",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "クラウドで自動バックアップ",
+                                text = "✅ 自動バックアップ\n✅ 複数端末で同期",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    
-                    Text(
-                        text = "✅ 自動バックアップ\n✅ 複数端末での同期\n✅ バージョン管理",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 44.dp)
-                    )
-                    
-                    Text(
-                        text = "※ GitHubアカウントと設定が必要です",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(start = 44.dp)
-                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-        
         // 補足説明
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -392,23 +369,27 @@ private fun DataStorageSelectionPage(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                modifier = Modifier.padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "💡 どちらを選べばいい？",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    text = "💡",
+                    style = MaterialTheme.typography.titleMedium
                 )
-                Text(
-                    text = "初めての方や、とりあえず試してみたい方は「ローカル保存のみ」がおすすめです。設定不要ですぐに日記を書き始められます。",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "複数の端末で同期したい方や、データのバックアップを自動化したい方は「Git連携」をお選びください。",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "初めての方は「ローカル保存のみ」がおすすめ",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "設定不要ですぐに日記を書き始められます。後からGit連携に変更することも可能です。",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
     }

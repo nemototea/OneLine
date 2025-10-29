@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun GitSettingsScreen(
     onNavigateBack: () -> Unit,
+    onSetupComplete: (() -> Unit)? = null,
+    isInitialSetup: Boolean = false,
     viewModel: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -65,7 +67,13 @@ fun GitSettingsScreen(
                 commitUserEmail = state.commitUserEmail
             }
             is SettingsViewModel.UiState.SaveSuccess -> {
-                showSuccessDialog = true
+                if (isInitialSetup) {
+                    // 初回セットアップ時は自動遷移
+                    onSetupComplete?.invoke()
+                } else {
+                    // 設定変更時はダイアログ表示
+                    showSuccessDialog = true
+                }
             }
             is SettingsViewModel.UiState.Error -> {
                 errorMessage = state.message
@@ -89,13 +97,15 @@ fun GitSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("データ同期設定") },
+                title = { Text(if (isInitialSetup) "Git連携の設定" else "データ同期設定") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "戻る"
-                        )
+                    if (!isInitialSetup) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "戻る"
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -409,7 +419,13 @@ fun GitSettingsScreen(
 
                                     when (result) {
                                         is RepositoryManager.MigrationResult.Success -> {
-                                            showSuccessDialog = true
+                                            if (isInitialSetup) {
+                                                // 初回セットアップ時は自動遷移
+                                                onSetupComplete?.invoke()
+                                            } else {
+                                                // 設定変更時はダイアログ表示
+                                                showSuccessDialog = true
+                                            }
                                         }
                                         else -> {
                                             errorMessage = result.getErrorMessage()
