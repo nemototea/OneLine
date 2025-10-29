@@ -40,6 +40,7 @@ fun MainSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("設定") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

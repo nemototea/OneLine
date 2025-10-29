@@ -81,6 +81,7 @@ fun DiaryListScreen(
                         )
                     )
                 },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
                     IconButton(
                         onClick = {
@@ -181,45 +182,31 @@ fun DiaryListScreen(
 
             // 同期中の表示
             if (syncStatus is DiaryListViewModel.SyncStatus.Syncing) {
-                Row(
+                Card(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.Center
+                        .padding(horizontal = 32.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 ) {
-                    Card(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "同期中...",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "同期中...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
                 }
             }
@@ -237,7 +224,7 @@ fun DiaryListScreen(
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 32.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (syncStatus is DiaryListViewModel.SyncStatus.Success)
                             MaterialTheme.colorScheme.secondaryContainer
@@ -245,13 +232,20 @@ fun DiaryListScreen(
                             MaterialTheme.colorScheme.errorContainer
                     )
                 ) {
-                    Text(
-                        text = syncStatusMessage,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = syncStatusMessage,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (syncStatus is DiaryListViewModel.SyncStatus.Success)
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            else
+                                MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
                 }
             }
         }

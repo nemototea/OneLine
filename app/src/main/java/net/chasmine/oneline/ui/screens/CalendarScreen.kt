@@ -70,6 +70,7 @@ fun CalendarScreen(
                         )
                     )
                 },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
                     IconButton(
                         onClick = {

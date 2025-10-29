@@ -23,6 +23,7 @@ fun NotificationSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("通知設定") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -39,7 +40,7 @@ fun NotificationSettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 説明カード
             InfoCard(
@@ -49,8 +50,6 @@ fun NotificationSettingsScreen(
 
             // 通知設定セクション
             NotificationSettingsSection()
-
-            Spacer(modifier = Modifier.weight(1f))
 
             // 注意事項
             WarningCard(
