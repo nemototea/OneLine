@@ -233,26 +233,38 @@ fun DiaryListScreen(
                     showSyncStatusMessage = false
                 }
 
-                Card(
+                Row(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (syncStatus is DiaryListViewModel.SyncStatus.Success)
-                            MaterialTheme.colorScheme.secondaryContainer
-                        else
-                            MaterialTheme.colorScheme.errorContainer
-                    )
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = syncStatusMessage,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
+                    Card(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (syncStatus is DiaryListViewModel.SyncStatus.Success)
+                                MaterialTheme.colorScheme.secondaryContainer
+                            else
+                                MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = syncStatusMessage,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (syncStatus is DiaryListViewModel.SyncStatus.Success)
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                else
+                                    MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
                 }
             }
         }
