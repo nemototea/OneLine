@@ -306,13 +306,13 @@ private fun DataStorageSelectionPage(
 
                         Column {
                             Text(
-                                text = "📱 ローカル保存のみ（推奨）",
+                                text = "ローカル保存のみ（推奨）",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "✅ 設定不要ですぐ使える\n✅ 完全プライベート",
+                                text = "• 設定不要ですぐ使える\n• 完全プライベート",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -347,13 +347,13 @@ private fun DataStorageSelectionPage(
 
                         Column {
                             Text(
-                                text = "☁️ Git連携",
+                                text = "Git連携",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "✅ 自動バックアップ\n✅ 複数端末で同期",
+                                text = "• 自動バックアップ\n• 複数端末で同期",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

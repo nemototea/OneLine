@@ -84,7 +84,7 @@ fun NotificationSettingsSection() {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "⚠️ 通知権限が必要です",
+                            text = "通知権限が必要です",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.error
                         )

@@ -17,6 +17,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.viewmodels.SettingsViewModel
 import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.ui.components.MaterialAlertDialog
+import net.chasmine.oneline.ui.components.AlertType
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -247,9 +249,9 @@ fun GitSettingsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("検証中...")
                         } else if (isValidationPassed) {
-                            Text("✅ 検証済み - 再検証")
+                            Text("検証済み - 再検証")
                         } else {
-                            Text("🔍 リポジトリを検証")
+                            Text("リポジトリを検証")
                         }
                     }
 
@@ -279,9 +281,9 @@ fun GitSettingsScreen(
                     ) {
                         if (isValidationPassed) {
                             if (isLocalOnlyMode) {
-                                Text("✅ Git連携に移行して保存")
+                                Text("Git連携に移行して保存")
                             } else {
-                                Text("✅ 設定を保存")
+                                Text("設定を保存")
                             }
                         } else {
                             Text("リポジトリを検証")
@@ -295,71 +297,62 @@ fun GitSettingsScreen(
         
         // 成功ダイアログ
         if (showSuccessDialog) {
-            AlertDialog(
+            MaterialAlertDialog(
                 onDismissRequest = { showSuccessDialog = false },
-                title = { Text("✅ 設定完了") },
-                text = { Text("Git設定が正常に保存されました。") },
-                confirmButton = {
-                    TextButton(onClick = { showSuccessDialog = false }) {
-                        Text("OK")
-                    }
-                }
+                title = "設定完了",
+                message = "Git設定が正常に保存されました。",
+                alertType = AlertType.SUCCESS
             )
         }
 
         // エラーダイアログ
         if (showErrorDialog) {
-            AlertDialog(
+            MaterialAlertDialog(
                 onDismissRequest = { showErrorDialog = false },
-                title = { Text("❌ エラー") },
-                text = { Text(errorMessage) },
-                confirmButton = {
-                    TextButton(onClick = { showErrorDialog = false }) {
-                        Text("OK")
-                    }
-                }
+                title = "エラー",
+                message = errorMessage,
+                alertType = AlertType.ERROR
             )
         }
 
         // 検証結果ダイアログ
         if (showValidationDialog) {
-            AlertDialog(
+            val dialogAlertType = when (validationResult) {
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.DIARY_REPOSITORY,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.LIKELY_DIARY_REPOSITORY,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.EMPTY_REPOSITORY -> AlertType.SUCCESS
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.UNKNOWN_REPOSITORY -> AlertType.WARNING
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.SUSPICIOUS_REPOSITORY,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.DANGEROUS_REPOSITORY,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.OWNERSHIP_VERIFICATION_FAILED,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.AUTHENTICATION_FAILED,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.REPOSITORY_NOT_FOUND,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.CONNECTION_FAILED,
+                net.chasmine.oneline.data.git.GitRepository.ValidationResult.VALIDATION_FAILED -> AlertType.ERROR
+                else -> AlertType.INFO
+            }
+            
+            MaterialAlertDialog(
                 onDismissRequest = { showValidationDialog = false },
-                title = { Text("リポジトリ検証結果") },
-                text = { Text(validationMessage) },
-                confirmButton = {
-                    TextButton(onClick = { showValidationDialog = false }) {
-                        Text("OK")
-                    }
-                }
+                title = "リポジトリ検証結果",
+                message = validationMessage,
+                alertType = dialogAlertType
             )
         }
 
         // ヘルプダイアログ
         if (showCreateRepoHelpDialog) {
-            AlertDialog(
+            MaterialAlertDialog(
                 onDismissRequest = { showCreateRepoHelpDialog = false },
-                title = { Text("📖 日記リポジトリの設定ガイド") },
-                text = {
-                    Column(
-                        modifier = Modifier.verticalScroll(rememberScrollState())
-                    ) {
-                        Text(
-                            text = "GitHubで日記専用のプライベートリポジトリを作成してください。",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "1. GitHubにログインし、新しいリポジトリを作成\n2. リポジトリ名を設定（例: my-diary）\n3. プライベートリポジトリに設定\n4. READMEファイルで初期化\n5. Personal Access Tokenを作成",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showCreateRepoHelpDialog = false }) {
-                        Text("閉じる")
-                    }
-                }
+                title = "日記リポジトリの設定ガイド",
+                message = "GitHubで日記専用のプライベートリポジトリを作成してください。\n\n" +
+                        "1. GitHubにログインし、新しいリポジトリを作成\n" +
+                        "2. リポジトリ名を設定（例: my-diary）\n" +
+                        "3. プライベートリポジトリに設定\n" +
+                        "4. READMEファイルで初期化\n" +
+                        "5. Personal Access Tokenを作成",
+                alertType = AlertType.INFO,
+                confirmText = "閉じる"
             )
         }
         
