@@ -19,6 +19,7 @@ import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.ui.components.MaterialAlertDialog
 import net.chasmine.oneline.ui.components.AlertType
+import net.chasmine.oneline.ui.components.LottieLoadingIndicator
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +129,9 @@ fun GitSettingsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    LottieLoadingIndicator(
+                        size = 150.dp
+                    )
                 }
             }
             else -> {
@@ -242,10 +245,8 @@ fun GitSettingsScreen(
                         )
                     ) {
                         if (uiState is SettingsViewModel.UiState.Validating) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
+                            LottieLoadingIndicator(
+                                size = 24.dp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("検証中...")
@@ -431,7 +432,7 @@ fun GitSettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        LottieLoadingIndicator(size = 50.dp)
                         Text("ローカルデータをGitリポジトリに移行しています")
                     }
                 },
@@ -461,9 +462,8 @@ fun GitSettingsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(40.dp),
-                            strokeWidth = 4.dp
+                        LottieLoadingIndicator(
+                            size = 80.dp
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(

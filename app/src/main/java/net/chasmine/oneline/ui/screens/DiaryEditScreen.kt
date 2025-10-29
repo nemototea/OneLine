@@ -7,7 +7,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.airbnb.lottie.compose.*
+import net.chasmine.oneline.R
 import net.chasmine.oneline.ui.components.DiaryForm
+import net.chasmine.oneline.ui.components.LottieLoadingIndicator
 import net.chasmine.oneline.ui.viewmodels.DiaryEditViewModel
 import kotlinx.coroutines.launch
 
@@ -23,6 +26,7 @@ fun DiaryEditScreen(
     var showConfirmDeleteDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var showSuccessAnimation by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = date) {
         viewModel.loadEntry(date)
@@ -31,6 +35,9 @@ fun DiaryEditScreen(
     LaunchedEffect(saveStatus) {
         when (saveStatus) {
             is DiaryEditViewModel.SaveStatus.Success -> {
+                showSuccessAnimation = true
+                // 1.5秒後に画面を閉じる
+                kotlinx.coroutines.delay(1500)
                 onNavigateBack()
             }
             is DiaryEditViewModel.SaveStatus.Error -> {
@@ -47,7 +54,9 @@ fun DiaryEditScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                LottieLoadingIndicator(
+                    size = 150.dp
+                )
             }
         }
         is DiaryEditViewModel.UiState.Editing -> {
@@ -134,7 +143,7 @@ fun DiaryEditScreen(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
             ) {}
-            
+
             // ローディングカード
             Card(
                 modifier = Modifier.padding(32.dp),
@@ -148,15 +157,64 @@ fun DiaryEditScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(40.dp),
-                        strokeWidth = 4.dp
+                    LottieLoadingIndicator(
+                        size = 80.dp
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "保存中...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        }
+    }
+
+    // 保存成功アニメーション
+    if (showSuccessAnimation) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            // 半透明の背景オーバーレイ
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            ) {}
+
+            // 成功アニメーションカード
+            Card(
+                modifier = Modifier.padding(32.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(R.raw.done)
+                    )
+                    val progress by animateLottieCompositionAsState(
+                        composition = composition,
+                        iterations = 1
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.size(120.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "保存しました！",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
