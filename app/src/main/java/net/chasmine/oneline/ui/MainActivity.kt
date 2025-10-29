@@ -305,14 +305,17 @@ fun OneLineApp(
                 CustomBottomBar(
                     selectedTab = selectedTab,
                     onTabSelected = { tab ->
-                        previousTab = selectedTab
-                        selectedTab = tab
-                        when (tab) {
-                            0 -> navController.navigate("diary_list") {
-                                popUpTo("diary_list") { inclusive = true }
-                            }
-                            1 -> navController.navigate("calendar") {
-                                popUpTo("diary_list") { saveState = true }
+                        // 現在選択中のタブと異なるタブが選択された場合のみ遷移
+                        if (tab != selectedTab) {
+                            previousTab = selectedTab
+                            selectedTab = tab
+                            when (tab) {
+                                0 -> navController.navigate("diary_list") {
+                                    popUpTo("diary_list") { inclusive = true }
+                                }
+                                1 -> navController.navigate("calendar") {
+                                    popUpTo("diary_list") { saveState = true }
+                                }
                             }
                         }
                     },
