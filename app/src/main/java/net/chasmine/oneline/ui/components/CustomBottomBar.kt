@@ -191,7 +191,8 @@ private fun SwarmTabItem(
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(bounded = true, radius = 40.dp),
-                onClick = onClick
+                onClick = onClick,
+                enabled = !selected  // 選択中のタブはクリック無効化
             )
             .padding(vertical = 8.dp)
             .scale(scale),

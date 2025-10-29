@@ -310,9 +310,11 @@ fun OneLineApp(
                         when (tab) {
                             0 -> navController.navigate("diary_list") {
                                 popUpTo("diary_list") { inclusive = true }
+                                launchSingleTop = true
                             }
                             1 -> navController.navigate("calendar") {
                                 popUpTo("diary_list") { saveState = true }
+                                launchSingleTop = true
                             }
                         }
                     },
