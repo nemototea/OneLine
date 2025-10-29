@@ -1,5 +1,7 @@
 package net.chasmine.oneline.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -7,12 +9,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -23,6 +27,9 @@ import net.chasmine.oneline.R
 fun AboutScreen(
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val repositoryUrl = "https://github.com/nemototea/OneLine"
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -86,13 +93,13 @@ fun AboutScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "📖 OneLineについて",
+                        text = "OneLineについて",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "OneLineは、毎日の出来事を一行で記録するシンプルな日記アプリです。GitHubリポジトリと連携することで、あなたの日記を安全にバックアップし、どこからでもアクセスできます。",
+                        text = "OneLineは、手軽に日記を書くことを目的とした日記アプリです。\n\n忙しい毎日の中で忘れてしまいがちな、何でもないできごとを簡単に書き留めて振り返ることができます。\n\n物理的な日記と違い、買い替えや記入忘れの心配がなく、他の日記サービスと違い、データを完全に自分で管理できます。端末内またはGitリポジトリに保存することで、完全にプライベートに保管できます。",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -109,49 +116,76 @@ fun AboutScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "✨ 主な機能",
+                        text = "主な機能",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     val features = listOf(
-                        "📝 シンプルな日記作成・編集",
-                        "📦 GitHubリポジトリとの自動同期",
-                        "🔔 毎日のリマインダー通知",
-                        "📱 ホーム画面ウィジェット",
-                        "🔒 プライベートリポジトリ対応"
+                        "シンプルな日記作成・編集",
+                        "GitHubリポジトリとの自動同期",
+                        "毎日のリマインダー通知",
+                        "ホーム画面ウィジェット",
+                        "プライベートリポジトリ対応"
                     )
-                    
+
                     features.forEach { feature ->
-                        Text(
-                            text = feature,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 2.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = "• ",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = feature,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
 
-            // 開発者情報
+            // リポジトリ情報
             Card(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(repositoryUrl))
+                    context.startActivity(intent)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "👨‍💻 開発者",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "このアプリは個人開発プロジェクトです。\nフィードバックやご要望がございましたら、GitHubリポジトリまでお寄せください。",
-                        style = MaterialTheme.typography.bodyMedium
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "GitHubリポジトリ",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "ソースコードの閲覧、Issue報告、フィードバックはこちらから",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "リポジトリを開く",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -167,13 +201,13 @@ fun AboutScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "📄 ライセンス",
+                        text = "ライセンス",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "このアプリはオープンソースソフトウェアです。\n使用しているライブラリのライセンス情報については、GitHubリポジトリをご確認ください。",
+                        text = "このアプリは MIT License の下で公開されているオープンソースソフトウェアです。\n\n詳細なライセンス情報や使用しているライブラリについては、GitHubリポジトリをご確認ください。",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -183,7 +217,7 @@ fun AboutScreen(
 
             // フッター
             Text(
-                text = "© 2024 OneLine\nMade with ❤️ in Japan",
+                text = "© 2025 OneLine",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center
