@@ -39,29 +39,22 @@ fun NotificationSettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                // 説明カード
-                InfoCard(
-                    message = "毎日決まった時間に日記を書くリマインダーを受け取ることができます。既に日記を書いている場合は通知されません。",
-                    modifier = Modifier.fillMaxWidth()
-                )
+            // 説明カード
+            InfoCard(
+                message = "毎日決まった時間に日記を書くリマインダーを受け取ることができます。既に日記を書いている場合は通知されません。",
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                // 通知設定セクション
-                NotificationSettingsSection()
-            }
+            // 通知設定セクション
+            NotificationSettingsSection()
 
-            // 注意事項（画面下部に固定）
+            // 注意事項
             WarningCard(
                 message = "• Android 13以降では通知権限の許可が必要です\n• バッテリー最適化の設定により通知が遅延する場合があります\n• 端末の省電力モードでは通知が制限される場合があります",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
