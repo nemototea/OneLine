@@ -245,8 +245,7 @@ private fun DataStorageSelectionPage(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -269,6 +268,8 @@ private fun DataStorageSelectionPage(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // データ保存方法の選択
         Column(
@@ -361,6 +362,8 @@ private fun DataStorageSelectionPage(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         // 補足説明
         Card(
