@@ -16,6 +16,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Japanese diary application built with Kotlin and Jetpack Compose that supports both local-only and Git-based cloud synchronization.
 
+## アプリの目的
+
+OneLineは、手軽に日記を書くことを目的とした日記アプリです。日記を書くハードルを下げ、楽しく継続できる環境を提供します。
+
+**主な特徴:**
+- 忙しい毎日の中で忘れてしまいがちな、何でもないようなできごとを簡単に書き留めて振り返ることができる
+- 物理的な日記と違い、買い替えや記入忘れの心配がない
+- 他の日記サービスと違い、データを完全に自分で管理できる（端末内またはGitリポジトリに保存）
+- データはサービスに預けず、完全にプライベートに保管できる
+
 ## Package Structure
 
 ```
