@@ -199,7 +199,7 @@ fun DiaryEditScreen(
                     val animationState by animateLottieCompositionAsState(
                         composition = composition,
                         iterations = 1,
-                        speed = 1.2f  // 1.2倍速で再生
+                        speed = 3f
                     )
 
                     // アニメーション完了を検知して画面を閉じる
