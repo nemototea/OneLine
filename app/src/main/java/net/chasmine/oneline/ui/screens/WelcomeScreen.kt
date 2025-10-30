@@ -1,5 +1,6 @@
 package net.chasmine.oneline.ui.screens
 
+import androidx.annotation.RawRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,12 +24,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.*
 import kotlinx.coroutines.launch
 import net.chasmine.oneline.R
 import net.chasmine.oneline.data.preferences.SettingsManager
 
 data class TutorialPage(
-    val icon: ImageVector,
+    @RawRes val lottieResId: Int,
     val title: String,
     val description: String,
     val details: List<String>
@@ -47,7 +49,7 @@ fun WelcomeScreen(
     // チュートリアルページの定義
     val tutorialPages = listOf(
         TutorialPage(
-            icon = Icons.Default.EditNote,
+            lottieResId = R.raw.checklist_cubaan,
             title = "シンプルな日記",
             description = "毎日の想いを一行で記録",
             details = listOf(
@@ -57,7 +59,7 @@ fun WelcomeScreen(
             )
         ),
         TutorialPage(
-            icon = Icons.Default.CalendarMonth,
+            lottieResId = R.raw.marking_a_calendar,
             title = "カレンダー表示",
             description = "過去の記録を簡単に振り返り",
             details = listOf(
@@ -67,7 +69,7 @@ fun WelcomeScreen(
             )
         ),
         TutorialPage(
-            icon = Icons.Default.Notifications,
+            lottieResId = R.raw.notifications,
             title = "通知機能",
             description = "書き忘れを防ぐリマインダー",
             details = listOf(
@@ -178,12 +180,19 @@ private fun TutorialPageContent(page: TutorialPage) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // アイコン
-        Icon(
-            imageVector = page.icon,
-            contentDescription = null,
-            modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.primary
+        // Lottieアニメーション
+        val composition by rememberLottieComposition(
+            LottieCompositionSpec.RawRes(page.lottieResId)
+        )
+        val progress by animateLottieCompositionAsState(
+            composition = composition,
+            iterations = LottieConstants.IterateForever
+        )
+
+        LottieAnimation(
+            composition = composition,
+            progress = { progress },
+            modifier = Modifier.size(200.dp)
         )
 
         Spacer(modifier = Modifier.height(32.dp))

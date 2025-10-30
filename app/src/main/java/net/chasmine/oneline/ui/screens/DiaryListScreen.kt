@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.components.DiaryCard
+import net.chasmine.oneline.ui.components.LottieLoadingIndicator
 import net.chasmine.oneline.ui.viewmodels.DiaryListViewModel
 import kotlinx.coroutines.launch
 
@@ -115,8 +116,9 @@ fun DiaryListScreen(
                 .padding(paddingValues)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                LottieLoadingIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    size = 150.dp
                 )
             } else if (entries.isEmpty() && !isLoading) {
                 Column(
@@ -170,9 +172,8 @@ fun DiaryListScreen(
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    strokeWidth = 3.dp
+                                LottieLoadingIndicator(
+                                    size = 60.dp
                                 )
                             }
                         }
@@ -197,10 +198,8 @@ fun DiaryListScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
+                        LottieLoadingIndicator(
+                            size = 40.dp
                         )
                         Text(
                             text = "同期中...",
