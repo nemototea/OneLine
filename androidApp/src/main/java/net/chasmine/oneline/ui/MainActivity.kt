@@ -423,7 +423,8 @@ fun OneLineApp(
                 onNavigateToDataStorage = { navController.navigate("data_storage_settings") },
                 onNavigateToGitSettings = { navController.navigate("git_settings") },
                 onNavigateToNotificationSettings = { navController.navigate("notification_settings") },
-                onNavigateToAbout = { navController.navigate("about") }
+                onNavigateToAbout = { navController.navigate("about") },
+                onNavigateToKmpVerification = { navController.navigate("kmp_verification") }
             )
         }
 
@@ -476,6 +477,10 @@ fun OneLineApp(
                     navController.navigate("settings")
                 }
             )
+        }
+
+        composable("kmp_verification") {
+            net.chasmine.oneline.ui.screens.KmpVerificationScreen()
         }
         }
     }

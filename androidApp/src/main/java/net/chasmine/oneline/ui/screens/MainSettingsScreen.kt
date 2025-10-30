@@ -28,7 +28,8 @@ fun MainSettingsScreen(
     onNavigateToDataStorage: () -> Unit,
     onNavigateToGitSettings: () -> Unit,
     onNavigateToNotificationSettings: () -> Unit,
-    onNavigateToAbout: () -> Unit
+    onNavigateToAbout: () -> Unit,
+    onNavigateToKmpVerification: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val settingsManager = remember { SettingsManager.getInstance(context) }
@@ -105,6 +106,17 @@ fun MainSettingsScreen(
                         title = "アプリについて",
                         subtitle = "バージョン情報・ライセンス",
                         onClick = onNavigateToAbout
+                    )
+                }
+            }
+
+            item {
+                SettingsSection(title = "開発者向け") {
+                    SettingsItem(
+                        icon = Icons.Default.Info,
+                        title = "KMP/CMP 動作確認",
+                        subtitle = "マルチプラットフォーム機能のテスト",
+                        onClick = onNavigateToKmpVerification
                     )
                 }
             }
