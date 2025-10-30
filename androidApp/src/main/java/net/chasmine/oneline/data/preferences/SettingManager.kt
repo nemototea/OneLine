@@ -28,6 +28,7 @@ class SettingsManager(private val context: Context) {
     private val gitCommitUserEmailKey = stringPreferencesKey("git_commit_user_email")
     private val localOnlyModeKey = booleanPreferencesKey("local_only_mode")
     private val themeModeKey = stringPreferencesKey("theme_mode")
+    private val developerModeKey = booleanPreferencesKey("developer_mode")
 
     // Git設定を保存
     suspend fun saveGitSettings(
@@ -70,6 +71,13 @@ class SettingsManager(private val context: Context) {
         }
     }
 
+    // 開発者モードの設定
+    suspend fun setDeveloperMode(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[developerModeKey] = enabled
+        }
+    }
+
     // Git設定の各項目をFlowとして取得
     val gitRepoUrl: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[gitRepoUrlKey] ?: ""
@@ -104,6 +112,11 @@ class SettingsManager(private val context: Context) {
         } catch (e: IllegalArgumentException) {
             ThemeMode.SYSTEM
         }
+    }
+
+    // 開発者モードの状態
+    val isDeveloperMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[developerModeKey] ?: false
     }
 
     // 設定が有効かどうかをチェック（ローカルオンリーモードまたはGit設定が完了）

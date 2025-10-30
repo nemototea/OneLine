@@ -26,7 +26,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.*
+import kotlinx.coroutines.launch
 import net.chasmine.oneline.R
+import net.chasmine.oneline.data.preferences.SettingsManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,15 +37,25 @@ fun AboutScreen(
 ) {
     val context = LocalContext.current
     val repositoryUrl = "https://github.com/nemototea/OneLine"
+    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // イースターエッグ用の状態変数
-    var tapCount by remember { mutableIntStateOf(0) }
+    // 開発者モードの状態を取得
+    val isDeveloperMode by settingsManager.isDeveloperMode.collectAsState(initial = false)
+
+    // イースターエッグ用の状態変数（アプリアイコン用）
+    var iconTapCount by remember { mutableIntStateOf(0) }
     var showEasterEgg by remember { mutableStateOf(false) }
-    val interactionSource = remember { MutableInteractionSource() }
+    val iconInteractionSource = remember { MutableInteractionSource() }
+
+    // 開発者モード用の状態変数（バージョン情報用）
+    var versionTapCount by remember { mutableIntStateOf(0) }
+    val versionInteractionSource = remember { MutableInteractionSource() }
 
     // アイコンのバウンスアニメーション
-    val scale by animateFloatAsState(
-        targetValue = if (tapCount > 0 && tapCount < 7) 1.1f else 1f,
+    val iconScale by animateFloatAsState(
+        targetValue = if (iconTapCount > 0 && iconTapCount < 7) 1.1f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -65,7 +77,8 @@ fun AboutScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -84,14 +97,14 @@ fun AboutScreen(
                 contentDescription = "OneLine アプリアイコン",
                 modifier = Modifier
                     .size(120.dp)
-                    .scale(scale)
+                    .scale(iconScale)
                     .clip(RoundedCornerShape(24.dp))
                     .clickable(
-                        interactionSource = interactionSource,
+                        interactionSource = iconInteractionSource,
                         indication = null
                     ) {
-                        tapCount++
-                        if (tapCount >= 7) {
+                        iconTapCount++
+                        if (iconTapCount >= 7) {
                             showEasterEgg = true
                         }
                     },
@@ -99,9 +112,9 @@ fun AboutScreen(
             )
 
             // タップ回数のヒント表示（5回以上タップしたら表示）
-            if (tapCount in 5..6) {
+            if (iconTapCount in 5..6) {
                 Text(
-                    text = "あと${7 - tapCount}回...",
+                    text = "あと${7 - iconTapCount}回...",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                 )
@@ -114,12 +127,37 @@ fun AboutScreen(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            // バージョン情報
+            // バージョン情報（開発者モード有効化用）
             Text(
                 text = "バージョン 1.0.0",
+                modifier = Modifier.clickable(
+                    interactionSource = versionInteractionSource,
+                    indication = null
+                ) {
+                    versionTapCount++
+                    if (versionTapCount >= 7) {
+                        scope.launch {
+                            settingsManager.setDeveloperMode(!isDeveloperMode)
+                            snackbarHostState.showSnackbar(
+                                message = if (!isDeveloperMode) "🔧 開発者モードが有効になりました" else "開発者モードが無効になりました",
+                                duration = SnackbarDuration.Short
+                            )
+                            versionTapCount = 0
+                        }
+                    }
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            // タップ回数のヒント表示（5回以上タップしたら表示）
+            if (versionTapCount in 5..6) {
+                Text(
+                    text = "あと${7 - versionTapCount}回...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -277,11 +315,11 @@ fun AboutScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(
-                        interactionSource = interactionSource,
+                        interactionSource = iconInteractionSource,
                         indication = null
                     ) {
                         showEasterEgg = false
-                        tapCount = 0
+                        iconTapCount = 0
                     },
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
             ) {}
@@ -342,7 +380,7 @@ fun AboutScreen(
                     Button(
                         onClick = {
                             showEasterEgg = false
-                            tapCount = 0
+                            iconTapCount = 0
                         }
                     ) {
                         Text("閉じる")
