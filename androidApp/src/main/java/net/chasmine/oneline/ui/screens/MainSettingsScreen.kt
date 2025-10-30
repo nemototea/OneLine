@@ -34,6 +34,7 @@ fun MainSettingsScreen(
     val context = LocalContext.current
     val settingsManager = remember { SettingsManager.getInstance(context) }
     val currentThemeMode by settingsManager.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+    val isDeveloperMode by settingsManager.isDeveloperMode.collectAsState(initial = false)
     val scope = rememberCoroutineScope()
     var showThemeDialog by remember { mutableStateOf(false) }
 
@@ -110,14 +111,17 @@ fun MainSettingsScreen(
                 }
             }
 
-            item {
-                SettingsSection(title = "開発者向け") {
-                    SettingsItem(
-                        icon = Icons.Default.Info,
-                        title = "KMP/CMP 動作確認",
-                        subtitle = "マルチプラットフォーム機能のテスト",
-                        onClick = onNavigateToKmpVerification
-                    )
+            // 開発者モードが有効な場合のみ表示
+            if (isDeveloperMode) {
+                item {
+                    SettingsSection(title = "開発者向け") {
+                        SettingsItem(
+                            icon = Icons.Default.Info,
+                            title = "KMP/CMP 動作確認",
+                            subtitle = "マルチプラットフォーム機能のテスト",
+                            onClick = onNavigateToKmpVerification
+                        )
+                    }
                 }
             }
         }

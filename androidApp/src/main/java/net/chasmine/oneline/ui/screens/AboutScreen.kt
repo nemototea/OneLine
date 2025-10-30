@@ -26,7 +26,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.*
+import kotlinx.coroutines.launch
 import net.chasmine.oneline.R
+import net.chasmine.oneline.data.preferences.SettingsManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +37,12 @@ fun AboutScreen(
 ) {
     val context = LocalContext.current
     val repositoryUrl = "https://github.com/nemototea/OneLine"
+    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // 開発者モードの状態を取得
+    val isDeveloperMode by settingsManager.isDeveloperMode.collectAsState(initial = false)
 
     // イースターエッグ用の状態変数
     var tapCount by remember { mutableIntStateOf(0) }
@@ -65,7 +73,8 @@ fun AboutScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -92,7 +101,20 @@ fun AboutScreen(
                     ) {
                         tapCount++
                         if (tapCount >= 7) {
-                            showEasterEgg = true
+                            // 開発者モードのトグル
+                            scope.launch {
+                                settingsManager.setDeveloperMode(!isDeveloperMode)
+                                val message = if (!isDeveloperMode) {
+                                    "🔧 開発者モードが有効になりました"
+                                } else {
+                                    "開発者モードが無効になりました"
+                                }
+                                snackbarHostState.showSnackbar(
+                                    message = message,
+                                    duration = SnackbarDuration.Short
+                                )
+                                tapCount = 0
+                            }
                         }
                     },
                 contentScale = ContentScale.Crop
