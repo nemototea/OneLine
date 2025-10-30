@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -143,33 +144,10 @@ fun GitSettingsScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 説明カード
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "💡",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = "日記専用のリポジトリを使用してください",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-
-                    // Git設定フォーム
+                    // Git基本情報
                     OutlinedTextField(
                         value = repoUrl,
-                        onValueChange = { 
+                        onValueChange = {
                             repoUrl = it
                             isValidationPassed = false
                         },
@@ -177,7 +155,7 @@ fun GitSettingsScreen(
                         placeholder = { Text("https://github.com/username/my-diary.git") },
                         modifier = Modifier.fillMaxWidth(),
                         supportingText = {
-                            Text("日記データを保存するGitHubリポジトリのURLを入力してください")
+                            Text("💡 日記専用のプライベートリポジトリを使用してください")
                         }
                     )
 
@@ -202,31 +180,7 @@ fun GitSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    OutlinedTextField(
-                        value = commitUserName,
-                        onValueChange = {
-                            commitUserName = it
-                            isValidationPassed = false
-                        },
-                        label = { Text("コミット用ユーザー名（必須）") },
-                        placeholder = { Text("例: Taro Yamada") },
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = commitUserName.isBlank() && repoUrl.isNotBlank()
-                    )
-
-                    OutlinedTextField(
-                        value = commitUserEmail,
-                        onValueChange = {
-                            commitUserEmail = it
-                            isValidationPassed = false
-                        },
-                        label = { Text("コミット用メールアドレス（必須）") },
-                        placeholder = { Text("例: taro@example.com") },
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = commitUserEmail.isBlank() && repoUrl.isNotBlank()
-                    )
-
-                    // 検証ボタン
+                    // 検証ボタン（基本情報入力後すぐに検証可能）
                     Button(
                         onClick = {
                             scope.launch {
@@ -235,7 +189,6 @@ fun GitSettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = repoUrl.isNotEmpty() && username.isNotEmpty() && token.isNotEmpty() &&
-                                 commitUserName.isNotEmpty() && commitUserEmail.isNotEmpty() &&
                                  uiState !is SettingsViewModel.UiState.Validating,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isValidationPassed)
@@ -251,44 +204,115 @@ fun GitSettingsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("検証中...")
                         } else if (isValidationPassed) {
-                            Text("検証済み - 再検証")
+                            Text("✓ 検証済み - 再検証")
                         } else {
                             Text("リポジトリを検証")
                         }
                     }
 
-                    // 保存ボタン
-                    Button(
-                        onClick = {
-                            val currentRepoUrl = if (uiState is SettingsViewModel.UiState.Loaded) {
-                                (uiState as SettingsViewModel.UiState.Loaded).repoUrl
-                            } else ""
-                            
-                            if (isLocalOnlyMode) {
-                                // ローカルモードからGit連携への移行
-                                showLocalToGitMigrationDialog = true
-                            } else if (currentRepoUrl.isNotEmpty() && currentRepoUrl != repoUrl) {
-                                // 既存のGit設定の変更
-                                pendingRepoUrl = repoUrl
-                                showRepositoryChangeDialog = true
-                            } else {
-                                // 通常の保存処理
-                                scope.launch {
-                                    viewModel.saveSettings(repoUrl, username, token, commitUserName, commitUserEmail)
-                                }
-                            }
-                        },
+                    // コミット情報セクション（Card内にグルーピング）
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = isValidationPassed && uiState !is SettingsViewModel.UiState.Saving
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
                     ) {
-                        if (isValidationPassed) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // セクションタイトル
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "🌱",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "GitHubで草を生やそう",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            // 説明
+                            Text(
+                                text = "GitHubやGitLabで使っているユーザー名とメールアドレスを設定すると、日記を書くたびに草（貢献グラフ）が増えます。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "※ メールアドレスはGitのコミット情報として使われるだけで、このアプリでは一切収集しません。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            // コミット情報入力フィールド
+                            OutlinedTextField(
+                                value = commitUserName,
+                                onValueChange = {
+                                    commitUserName = it
+                                },
+                                label = { Text("コミット用ユーザー名（必須）") },
+                                placeholder = { Text("例: Taro Yamada") },
+                                modifier = Modifier.fillMaxWidth(),
+                                isError = commitUserName.isBlank() && isValidationPassed,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                )
+                            )
+
+                            OutlinedTextField(
+                                value = commitUserEmail,
+                                onValueChange = {
+                                    commitUserEmail = it
+                                },
+                                label = { Text("コミット用メールアドレス（必須）") },
+                                placeholder = { Text("例: taro@example.com") },
+                                modifier = Modifier.fillMaxWidth(),
+                                isError = commitUserEmail.isBlank() && isValidationPassed,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                )
+                            )
+                        }
+                    }
+
+                    // 保存ボタン（検証成功後のみ表示）
+                    if (isValidationPassed) {
+                        Button(
+                            onClick = {
+                                val currentRepoUrl = if (uiState is SettingsViewModel.UiState.Loaded) {
+                                    (uiState as SettingsViewModel.UiState.Loaded).repoUrl
+                                } else ""
+
+                                if (isLocalOnlyMode) {
+                                    // ローカルモードからGit連携への移行
+                                    showLocalToGitMigrationDialog = true
+                                } else if (currentRepoUrl.isNotEmpty() && currentRepoUrl != repoUrl) {
+                                    // 既存のGit設定の変更
+                                    pendingRepoUrl = repoUrl
+                                    showRepositoryChangeDialog = true
+                                } else {
+                                    // 通常の保存処理
+                                    scope.launch {
+                                        viewModel.saveSettings(repoUrl, username, token, commitUserName, commitUserEmail)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = commitUserName.isNotEmpty() && commitUserEmail.isNotEmpty() &&
+                                     uiState !is SettingsViewModel.UiState.Saving
+                        ) {
                             if (isLocalOnlyMode) {
                                 Text("Git連携に移行して保存")
                             } else {
                                 Text("設定を保存")
                             }
-                        } else {
-                            Text("リポジトリを検証")
                         }
                     }
                 }

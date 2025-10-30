@@ -36,9 +36,6 @@ fun DiaryEditScreen(
         when (saveStatus) {
             is DiaryEditViewModel.SaveStatus.Success -> {
                 showSuccessAnimation = true
-                // 1.5秒後に画面を閉じる
-                kotlinx.coroutines.delay(1500)
-                onNavigateBack()
             }
             is DiaryEditViewModel.SaveStatus.Error -> {
                 errorMessage = (saveStatus as DiaryEditViewModel.SaveStatus.Error).message
@@ -199,14 +196,24 @@ fun DiaryEditScreen(
                     val composition by rememberLottieComposition(
                         LottieCompositionSpec.RawRes(R.raw.done)
                     )
-                    val progress by animateLottieCompositionAsState(
+                    val animationState by animateLottieCompositionAsState(
                         composition = composition,
-                        iterations = 1
+                        iterations = 1,
+                        speed = 1.2f  // 1.2倍速で再生
                     )
+
+                    // アニメーション完了を検知して画面を閉じる
+                    LaunchedEffect(animationState) {
+                        if (animationState == 1f) {
+                            // アニメーション完了後、0.5秒待ってから画面を閉じる
+                            kotlinx.coroutines.delay(500)
+                            onNavigateBack()
+                        }
+                    }
 
                     LottieAnimation(
                         composition = composition,
-                        progress = { progress },
+                        progress = { animationState },
                         modifier = Modifier.size(120.dp)
                     )
 

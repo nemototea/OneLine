@@ -49,7 +49,7 @@ fun WelcomeScreen(
     // チュートリアルページの定義
     val tutorialPages = listOf(
         TutorialPage(
-            lottieResId = R.raw.celebrations_begin,
+            lottieResId = R.raw.checklist_cubaan,
             title = "シンプルな日記",
             description = "毎日の想いを一行で記録",
             details = listOf(
@@ -59,7 +59,7 @@ fun WelcomeScreen(
             )
         ),
         TutorialPage(
-            lottieResId = R.raw.calendar_booking,
+            lottieResId = R.raw.marking_a_calendar,
             title = "カレンダー表示",
             description = "過去の記録を簡単に振り返り",
             details = listOf(
