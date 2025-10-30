@@ -7,6 +7,7 @@ hilt = "2.48"
 hiltAndroid = "2.48"
 hiltNavigationCompose = "1.1.0"
 kotlin = "2.0.21"
+composeMultiplatform = "1.7.1"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -53,6 +54,8 @@ org-eclipse-jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref =
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
