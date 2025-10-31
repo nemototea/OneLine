@@ -1,8 +1,14 @@
 package net.chasmine.oneline.util
 
 import net.chasmine.oneline.data.model.DiaryEntry
-import java.time.LocalDate
-import java.time.YearMonth
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
+import kotlinx.datetime.isoDayNumber
 
 /**
  * 日記の統計情報を計算するユーティリティクラス
@@ -16,20 +22,20 @@ object DiaryStatistics {
         if (entries.isEmpty()) return 0
 
         val sortedDates = entries.map { it.date }.distinct().sortedDescending()
-        val today = LocalDate.now()
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
         // 今日または昨日から始まっているかチェック
-        if (sortedDates.first() != today && sortedDates.first() != today.minusDays(1)) {
+        if (sortedDates.first() != today && sortedDates.first() != today.minus(DatePeriod(days = 1))) {
             return 0
         }
 
         var streak = 0
-        var expectedDate = if (sortedDates.first() == today) today else today.minusDays(1)
+        var expectedDate = if (sortedDates.first() == today) today else today.minus(DatePeriod(days = 1))
 
         for (date in sortedDates) {
             if (date == expectedDate) {
                 streak++
-                expectedDate = expectedDate.minusDays(1)
+                expectedDate = expectedDate.minus(DatePeriod(days = 1))
             } else {
                 break
             }
@@ -50,7 +56,7 @@ object DiaryStatistics {
         var currentStreak = 1
 
         for (i in 1 until sortedDates.size) {
-            if (sortedDates[i] == sortedDates[i - 1].plusDays(1)) {
+            if (sortedDates[i] == sortedDates[i - 1].plus(DatePeriod(days = 1))) {
                 currentStreak++
                 longestStreak = maxOf(longestStreak, currentStreak)
             } else {
@@ -64,9 +70,9 @@ object DiaryStatistics {
     /**
      * 指定月の投稿数を計算
      */
-    fun calculateMonthlyCount(entries: List<DiaryEntry>, yearMonth: YearMonth): Int {
+    fun calculateMonthlyCount(entries: List<DiaryEntry>, year: Int, month: Int): Int {
         return entries.count { entry ->
-            YearMonth.from(entry.date) == yearMonth
+            entry.date.year == year && entry.date.monthNumber == month
         }
     }
 
@@ -82,11 +88,11 @@ object DiaryStatistics {
      * @return 過去7日分の投稿有無（古い日→新しい日の順）
      */
     fun getWeeklyPattern(entries: List<DiaryEntry>): List<Boolean> {
-        val today = LocalDate.now()
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
         val entryDates = entries.map { it.date }.toSet()
 
         return (6 downTo 0).map { daysAgo ->
-            val date = today.minusDays(daysAgo.toLong())
+            val date = today.minus(DatePeriod(days = daysAgo))
             entryDates.contains(date)
         }
     }
@@ -103,30 +109,30 @@ object DiaryStatistics {
     )
 
     fun getContributionData(entries: List<DiaryEntry>, weeks: Int = 20): List<List<ContributionDay?>> {
-        val today = LocalDate.now()
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
         // エントリーを日付→文字数のマップに変換
         val entryMap = entries.associate { it.date to it.content.length }
 
         // 今日の曜日を取得（月曜日=1, 日曜日=7）
-        val todayDayOfWeek = today.dayOfWeek.value
+        val todayDayOfWeek = today.dayOfWeek.isoDayNumber
 
         // 最も古い日付を計算（今週の月曜日から weeks 週分遡る）
-        val mondayOfThisWeek = today.minusDays((todayDayOfWeek - 1).toLong())
-        val startDate = mondayOfThisWeek.minusWeeks((weeks - 1).toLong())
+        val mondayOfThisWeek = today.minus(DatePeriod(days = todayDayOfWeek - 1))
+        val startDate = mondayOfThisWeek.minus(DatePeriod(days = (weeks - 1) * 7))
 
         // 週ごとのデータを作成
         val result = mutableListOf<List<ContributionDay?>>()
 
         for (weekOffset in 0 until weeks) {
-            val weekStart = startDate.plusWeeks(weekOffset.toLong())
+            val weekStart = startDate.plus(DatePeriod(days = weekOffset * 7))
             val week = mutableListOf<ContributionDay?>()
 
             for (dayOffset in 0 until 7) {
-                val date = weekStart.plusDays(dayOffset.toLong())
+                val date = weekStart.plus(DatePeriod(days = dayOffset))
 
                 // 未来の日付は null
-                if (date.isAfter(today)) {
+                if (date > today) {
                     week.add(null)
                 } else {
                     val charCount = entryMap[date] ?: 0

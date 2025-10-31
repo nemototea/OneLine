@@ -7,11 +7,13 @@ import androidx.lifecycle.viewModelScope
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.data.model.DiaryEntry
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class DiaryEditViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -28,8 +30,8 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 // "new"の場合は今日の日付で既存エントリをチェック
                 if (dateString == "new") {
-                    val today = LocalDate.now()
-                    val todayString = today.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+                    val todayString = today.toString()
                     
                     // 今日の日記が既に存在するかチェック
                     val existingEntry = repositoryManager.getEntry(todayString)
@@ -57,7 +59,7 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
                         _uiState.value = UiState.Editing(entry, isNew = false)
                     } else {
                         // 指定日付のエントリがない場合は新規作成
-                        val date = LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
+                        val date = LocalDate.parse(dateString)
                         _uiState.value = UiState.Editing(
                             DiaryEntry(
                                 date = date,
@@ -120,7 +122,7 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
                 _saveStatus.value = SaveStatus.Saving
 
                 try {
-                    val dateString = currentState.entry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                    val dateString = currentState.entry.date.toString()
                     val success = repositoryManager.deleteEntry(dateString)
                     
                     if (success) {

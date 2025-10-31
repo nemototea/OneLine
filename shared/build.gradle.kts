@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -29,6 +30,12 @@ kotlin {
         commonMain.dependencies {
             // Kotlin Coroutines
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+            // kotlinx-datetime (Multiplatform date/time library)
+            implementation(libs.kotlinx.datetime)
+
+            // kotlinx-serialization (Multiplatform serialization)
+            implementation(libs.kotlinx.serialization.json)
 
             // Compose Multiplatform
             implementation(compose.runtime)

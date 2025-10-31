@@ -9,9 +9,6 @@ import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.local.LocalRepository
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.preferences.SettingsManager
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 
 /**
  * リポジトリ統合管理クラス
