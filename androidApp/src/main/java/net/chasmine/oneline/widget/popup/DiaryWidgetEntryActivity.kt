@@ -24,8 +24,11 @@ import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.preferences.SettingsManager
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import net.chasmine.oneline.data.repository.RepositoryManager
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 class DiaryWidgetEntryActivity : ComponentActivity() {
 
@@ -52,7 +55,7 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
         // インテントから情報を取得
         val entryContent = intent.getStringExtra("ENTRY_CONTENT") ?: ""
         val hasEntry = intent.getBooleanExtra("HAS_ENTRY", false)
-        val entryDate = intent.getStringExtra("ENTRY_DATE") ?: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val entryDate = intent.getStringExtra("ENTRY_DATE") ?: Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
         val repositoryInitialized = intent.getBooleanExtra("REPOSITORY_INITIALIZED", false)
 
         Log.d(TAG, "Activity started - hasEntry: $hasEntry, content length: ${entryContent.length}, date: $entryDate, repo initialized: $repositoryInitialized")
@@ -110,7 +113,7 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
                 val gitRepository = GitRepository.getInstance(applicationContext)
 
                 // 日付をパース
-                val date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+                val date = LocalDate.parse(dateStr)
 
                 val entry = DiaryEntry(
                     date = date,
@@ -287,8 +290,8 @@ fun DiaryEntryDialog(
 
 private fun formatDateForDisplay(dateStr: String): String {
     return try {
-        val date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
-        date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))
+        val date = LocalDate.parse(dateStr)
+        "${date.year}年${date.monthNumber.toString().padStart(2, '0')}月${date.dayOfMonth.toString().padStart(2, '0')}日"
     } catch (e: Exception) {
         dateStr
     }

@@ -10,14 +10,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import net.chasmine.oneline.data.model.DiaryEntry
+import kotlinx.datetime.LocalDate
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import java.io.File
 import java.io.IOException
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.util.DateUtils
 import org.eclipse.jgit.lib.PersonIdent
@@ -193,7 +192,7 @@ class GitRepository private constructor(private val context: Context) {
                     try {
                         val fileName = file.name
                         val dateStr = fileName.substringBefore(".md")
-                        val date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+                        val date = LocalDate.parse(dateStr)
 
                         val content = file.readText()
 
@@ -234,7 +233,7 @@ class GitRepository private constructor(private val context: Context) {
 
             if (file.exists() && file.canRead()) {
                 val content = file.readText()
-                val localDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+                val localDate = LocalDate.parse(dateStr)
 
                 Log.d(TAG, "Entry found for $dateStr, content length: ${content.length}")
 

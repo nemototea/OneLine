@@ -8,12 +8,15 @@ import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.preferences.SettingsManager
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 class DiaryListViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -63,7 +66,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
                 _entries.value = allEntries.take(pageSize)
 
                 // 今日の日記をチェック
-                val today = LocalDate.now()
+                val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
                 val todayEntryFound = diaryEntries.find { it.date == today }
                 _todayEntry.value = todayEntryFound
 
@@ -112,7 +115,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     fun saveTodayEntry(content: String) {
         viewModelScope.launch {
             try {
-                val today = LocalDate.now()
+                val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
                 val entry = DiaryEntry(date = today, content = content)
                 val success = repositoryManager.saveEntry(entry)
                 

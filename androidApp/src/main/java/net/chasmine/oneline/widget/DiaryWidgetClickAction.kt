@@ -11,8 +11,10 @@ import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.widget.popup.DiaryWidgetEntryActivity
 import net.chasmine.oneline.ui.MainActivity
 import kotlinx.coroutines.flow.first
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 class DiaryWidgetClickAction : ActionCallback {
 
@@ -69,8 +71,8 @@ class DiaryWidgetClickAction : ActionCallback {
             }
 
             // 今日の日記エントリを取得（初期化に失敗してもファイルシステムから読み込みを試行）
-            val today = LocalDate.now()
-            val todayDateStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE)
+            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            val todayDateStr = today.toString()
             Log.d(TAG, "Checking entry for date: $todayDateStr")
 
             // 初期化状態に関係なく、エントリ取得を試行
@@ -103,8 +105,8 @@ class DiaryWidgetClickAction : ActionCallback {
             Log.e(TAG, "Exception in widget click action", e)
             // 例外が発生した場合でも、ダイアログを開く試みを行う
             try {
-                val today = LocalDate.now()
-                val todayDateStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+                val todayDateStr = today.toString()
 
                 val intent = Intent(context, DiaryWidgetEntryActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)

@@ -9,15 +9,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.data.preferences.NotificationPreferences
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 class NotificationReceiver : BroadcastReceiver() {
-    
+
     companion object {
         private const val TAG = "NotificationReceiver"
     }
-    
+
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "通知受信: ${intent.action}")
 
@@ -26,7 +27,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val notificationPrefs = NotificationPreferences.getInstance(context)
 
         // 今日の日記が既に書かれているかチェック
-        val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
