@@ -204,9 +204,9 @@ fun GitSettingsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("検証中...")
                         } else if (isValidationPassed) {
-                            Text("✓ 検証済み - 再検証")
+                            Text("✓ 検証済み - 再度検証")
                         } else {
-                            Text("リポジトリを検証")
+                            Text("リポジトリの有効性を検証")
                         }
                     }
 
@@ -309,9 +309,9 @@ fun GitSettingsScreen(
                                      uiState !is SettingsViewModel.UiState.Saving
                         ) {
                             if (isLocalOnlyMode) {
-                                Text("Git連携に移行して保存")
+                                Text("Git連携に移行")
                             } else {
-                                Text("設定を保存")
+                                Text("Git連携を開始")
                             }
                         }
                     }
