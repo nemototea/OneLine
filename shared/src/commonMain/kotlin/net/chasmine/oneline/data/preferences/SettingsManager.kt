@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import net.chasmine.oneline.ui.theme.ThemeMode
+import net.chasmine.oneline.util.synchronized
 
 /**
  * 設定管理クラス（共通コード）
@@ -24,7 +25,6 @@ class SettingsManager(private val storage: SettingsStorage) {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_DEVELOPER_MODE = "developer_mode"
 
-        @Volatile
         private var INSTANCE: SettingsManager? = null
 
         fun getInstance(storage: SettingsStorage): SettingsManager {

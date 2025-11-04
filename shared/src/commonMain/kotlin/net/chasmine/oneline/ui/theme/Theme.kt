@@ -6,6 +6,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 // プラットフォーム固有のダークテーマ判定
+@Composable
 expect fun isSystemInDarkTheme(): Boolean
 
 private val DarkColorScheme = darkColorScheme(
