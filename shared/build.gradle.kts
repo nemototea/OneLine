@@ -27,7 +27,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Kotlin Coroutines
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
             // kotlinx-datetime (Multiplatform date/time library)
             implementation(libs.kotlinx.datetime)
@@ -45,7 +45,7 @@ kotlin {
         }
 
         androidMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
         }
 
         iosMain.dependencies {
@@ -59,7 +59,7 @@ kotlin {
 
 android {
     namespace = "net.chasmine.oneline.shared"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 28
