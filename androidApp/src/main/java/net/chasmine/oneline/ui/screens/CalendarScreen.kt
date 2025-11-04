@@ -31,10 +31,45 @@ import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.util.DiaryStatistics
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.isoDayNumber
+import kotlinx.datetime.todayIn
+
+/**
+ * kotlinx.datetime用の簡易YearMonthクラス
+ */
+data class YearMonth(val year: Int, val month: Int) {
+    fun atDay(day: Int): LocalDate = LocalDate(year, month, day)
+
+    fun lengthOfMonth(): Int = when (month) {
+        1, 3, 5, 7, 8, 10, 12 -> 31
+        4, 6, 9, 11 -> 30
+        2 -> if (isLeapYear(year)) 29 else 28
+        else -> throw IllegalArgumentException("Invalid month: $month")
+    }
+
+    fun atEndOfMonth(): LocalDate = atDay(lengthOfMonth())
+
+    fun plusMonths(months: Long): YearMonth {
+        val totalMonths = year * 12 + month - 1 + months
+        return YearMonth((totalMonths / 12).toInt(), (totalMonths % 12).toInt() + 1)
+    }
+
+    fun minusMonths(months: Long): YearMonth = plusMonths(-months)
+
+    companion object {
+        fun now(): YearMonth {
+            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            return YearMonth(today.year, today.monthNumber)
+        }
+
+        private fun isLeapYear(year: Int): Boolean {
+            return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,7 +162,7 @@ fun CalendarScreen(
                 }
 
                 Text(
-                    text = "${currentMonth.year}年${currentMonth.monthValue}月",
+                    text = "${currentMonth.year}年${currentMonth.month}月",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -166,7 +201,7 @@ fun CalendarScreen(
                 currentMonth = currentMonth,
                 diaryEntries = diaryEntries,
                 onDateClick = { date ->
-                    val dateString = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    val dateString = date.toString()
                     onNavigateToEdit(dateString)
                 }
             )
@@ -190,7 +225,7 @@ fun CalendarGrid(
 ) {
     val firstDayOfMonth = currentMonth.atDay(1)
     val lastDayOfMonth = currentMonth.atEndOfMonth()
-    val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // 日曜日を0にする
+    val firstDayOfWeek = firstDayOfMonth.dayOfWeek.isoDayNumber % 7 // 日曜日を0にする
     
     // カレンダーに表示する日付のリストを作成
     val calendarDays = mutableListOf<LocalDate?>()
@@ -223,7 +258,7 @@ fun CalendarGrid(
             CalendarDay(
                 date = date,
                 hasEntry = date?.let { diaryEntries.contains(it) } ?: false,
-                isCurrentMonth = date?.month == currentMonth.month,
+                isCurrentMonth = date?.monthNumber == currentMonth.month,
                 onClick = { date?.let { onDateClick(it) } }
             )
         }
@@ -237,7 +272,7 @@ fun CalendarDay(
     isCurrentMonth: Boolean,
     onClick: () -> Unit
 ) {
-    val today = LocalDate.now()
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val isToday = date == today
 
     Box(
@@ -312,7 +347,7 @@ fun DiaryStatisticsSection(
         DiaryStatistics.calculateLongestStreak(allEntries)
     }
     val monthlyCount = remember(allEntries, currentMonth) {
-        DiaryStatistics.calculateMonthlyCount(allEntries, currentMonth)
+        DiaryStatistics.calculateMonthlyCount(allEntries, currentMonth.year, currentMonth.month)
     }
     val totalCount = remember(allEntries) {
         DiaryStatistics.calculateTotalCount(allEntries)

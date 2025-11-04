@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.chasmine.oneline.data.model.DiaryEntry
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Composable
@@ -29,8 +28,9 @@ fun DiaryCard(
     showTopLine: Boolean = true,
     showBottomLine: Boolean = true
 ) {
-    val dayFormatter = DateTimeFormatter.ofPattern("dd")
-    val monthYearFormatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.ENGLISH)
+    // kotlinx.datetime.LocalDate用のフォーマット関数
+    val dayText = entry.date.dayOfMonth.toString().padStart(2, '0')
+    val monthYearText = "${entry.date.month.name.take(3)} ${entry.date.year}".uppercase(Locale.ENGLISH)
 
     Row(
         modifier = modifier
@@ -87,7 +87,7 @@ fun DiaryCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = entry.date.format(dayFormatter),
+                    text = dayText,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -95,7 +95,7 @@ fun DiaryCard(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = entry.date.format(monthYearFormatter).uppercase(),
+                    text = monthYearText,
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontWeight = FontWeight.Medium,
                         fontSize = 9.sp

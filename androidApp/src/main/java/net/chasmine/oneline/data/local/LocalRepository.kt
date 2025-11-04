@@ -8,9 +8,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import net.chasmine.oneline.data.model.DiaryEntry
+import kotlinx.datetime.LocalDate
 import java.io.File
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
  * ローカル専用のリポジトリクラス
@@ -98,7 +97,7 @@ class LocalRepository private constructor(private val context: Context) {
             }
 
             val content = file.readText()
-            val localDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            val localDate = LocalDate.parse(date)
             DiaryEntry(date = localDate, content = content)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get entry locally: $date", e)
@@ -125,7 +124,7 @@ class LocalRepository private constructor(private val context: Context) {
                 try {
                     val dateString = file.nameWithoutExtension
                     val content = file.readText()
-                    val localDate = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    val localDate = LocalDate.parse(dateString)
                     entries.add(DiaryEntry(date = localDate, content = content))
                 } catch (e: Exception) {
                     Log.w(TAG, "Failed to parse entry file: ${file.name}", e)
@@ -225,8 +224,8 @@ class LocalRepository private constructor(private val context: Context) {
                 try {
                     val dateString = file.nameWithoutExtension
                     // 日付形式の検証
-                    LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    
+                    LocalDate.parse(dateString)
+
                     // ファイル内容の検証
                     val content = file.readText()
                     if (content.isNotEmpty()) {
