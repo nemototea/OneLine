@@ -48,6 +48,13 @@ kotlin {
 
         androidMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+
+            // JGit (Git操作ライブラリ)
+            implementation(libs.org.eclipse.jgit)
+
+            // Bouncy Castle (暗号化ライブラリ - JGitの依存関係)
+            implementation(libs.bcprov.jdk18on)
+            implementation(libs.bcpkix.jdk18on)
         }
 
         iosMain.dependencies {
