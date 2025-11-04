@@ -9,6 +9,7 @@ import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.local.LocalRepository
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.storage.FileStorage
 
 /**
  * リポジトリ統合管理クラス
@@ -19,7 +20,8 @@ class RepositoryManager private constructor(private val context: Context) {
     private val TAG = "RepositoryManager"
     private val settingsManager = SettingsManager.getInstance(context)
     private val gitRepository = GitRepository.getInstance(context)
-    private val localRepository = LocalRepository.getInstance(context)
+    private val fileStorage = FileStorage(context)
+    private val localRepository = LocalRepository(fileStorage)
 
     companion object {
         @Volatile
@@ -188,9 +190,26 @@ class RepositoryManager private constructor(private val context: Context) {
             }
 
             // ローカルデータをGitリポジトリに移行
-            val migrationSuccess = localRepository.migrateToGitRepository(gitRepository)
-            if (!migrationSuccess) {
-                Log.e(TAG, "Data migration from local to Git failed")
+            var successCount = 0
+            var totalCount = 0
+            localRepository.getAllEntries().collect { entries ->
+                totalCount = entries.size
+                for (entry in entries) {
+                    try {
+                        val result = gitRepository.saveEntry(entry)
+                        if (result.isSuccess) {
+                            successCount++
+                        } else {
+                            Log.w(TAG, "Failed to migrate entry: ${entry.date}")
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Exception while migrating entry: ${entry.date}", e)
+                    }
+                }
+            }
+
+            Log.d(TAG, "Migration completed: $successCount/$totalCount entries migrated")
+            if (successCount < totalCount) {
                 return MigrationResult.DataMigrationFailed
             }
 
