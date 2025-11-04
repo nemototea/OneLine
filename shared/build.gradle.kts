@@ -44,6 +44,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(compose.materialIconsExtended)
         }
 
         androidMain.dependencies {
@@ -58,6 +59,9 @@ kotlin {
             // Bouncy Castle (暗号化ライブラリ - JGitの依存関係)
             implementation(libs.bcprov.jdk18on)
             implementation(libs.bcpkix.jdk18on)
+
+            // AndroidX Core (WindowInsetsControllerCompatなど)
+            implementation("androidx.core:core-ktx:1.15.0")
         }
 
         iosMain.dependencies {
