@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.repository.RepositoryManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +29,7 @@ fun DataStorageSettingsScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
     val repositoryManager = remember { RepositoryManager.getInstance(context) }
     
     val isLocalOnlyMode by settingsManager.isLocalOnlyMode.collectAsState(initial = false)

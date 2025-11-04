@@ -28,6 +28,7 @@ import com.airbnb.lottie.compose.*
 import kotlinx.coroutines.launch
 import net.chasmine.oneline.R
 import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 
 data class TutorialPage(
     @RawRes val lottieResId: Int,
@@ -44,7 +45,7 @@ fun WelcomeScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
     
     // チュートリアルページの定義
     val tutorialPages = listOf(

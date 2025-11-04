@@ -16,7 +16,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.viewmodels.SettingsViewModel
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.ui.components.MaterialAlertDialog
 import net.chasmine.oneline.ui.components.AlertType
@@ -34,7 +34,7 @@ fun GitSettingsScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
-    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
     val repositoryManager = remember { RepositoryManager.getInstance(context) }
 
     // ローカルモード状態の監視
@@ -204,9 +204,9 @@ fun GitSettingsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("検証中...")
                         } else if (isValidationPassed) {
-                            Text("✓ 検証済み - 再検証")
+                            Text("✓ 検証済み - 再度検証")
                         } else {
-                            Text("リポジトリを検証")
+                            Text("リポジトリの有効性を検証")
                         }
                     }
 
@@ -309,9 +309,9 @@ fun GitSettingsScreen(
                                      uiState !is SettingsViewModel.UiState.Saving
                         ) {
                             if (isLocalOnlyMode) {
-                                Text("Git連携に移行して保存")
+                                Text("Git連携に移行")
                             } else {
-                                Text("設定を保存")
+                                Text("Git連携を開始")
                             }
                         }
                     }

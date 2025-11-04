@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.data.model.DiaryEntry
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 class DiaryListViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repositoryManager = RepositoryManager.getInstance(application)
-    private val settingsManager = SettingsManager.getInstance(application)
+    private val settingsManager = SettingsManagerFactory.getInstance(application)
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading

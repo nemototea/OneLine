@@ -23,7 +23,7 @@ import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.model.DiaryEntry
 import net.chasmine.oneline.ui.theme.OneLineTheme
 import kotlinx.coroutines.launch
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.repository.RepositoryManager
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Clock
@@ -94,7 +94,7 @@ class DiaryWidgetEntryActivity : ComponentActivity() {
                     Log.w(TAG, "Repository not initialized, attempting to initialize before save")
 
                     // リポジトリの初期化を再試行
-                    val settingsManager = SettingsManager.getInstance(applicationContext)
+                    val settingsManager = SettingsManagerFactory.getInstance(applicationContext)
                     val gitRepository = GitRepository.getInstance(applicationContext)
 
                     val remoteUrl = settingsManager.gitRepoUrl.first()

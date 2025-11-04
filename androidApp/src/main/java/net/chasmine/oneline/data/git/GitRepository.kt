@@ -17,7 +17,7 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import java.io.File
 import java.io.IOException
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.util.DateUtils
 import org.eclipse.jgit.lib.PersonIdent
 
@@ -28,7 +28,7 @@ class GitRepository private constructor(private val context: Context) {
     private var credentialsProvider: CredentialsProvider? = null
     private var repoDirectory: File? = null
     private var isInitialized = false
-    private val settingsManager = SettingsManager.getInstance(context)
+    private val settingsManager = SettingsManagerFactory.getInstance(context)
 
     companion object {
         // ウィジェットから常に参照されるのでメモリリーク警告を抑制
