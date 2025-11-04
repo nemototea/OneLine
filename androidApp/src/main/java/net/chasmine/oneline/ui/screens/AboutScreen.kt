@@ -137,9 +137,10 @@ fun AboutScreen(
                     versionTapCount++
                     if (versionTapCount >= 7) {
                         scope.launch {
-                            settingsManager.setDeveloperMode(!isDeveloperMode)
+                            val newMode = !isDeveloperMode
+                            settingsManager.setDeveloperMode(newMode)
                             snackbarHostState.showSnackbar(
-                                message = if (!isDeveloperMode) "🔧 開発者モードが有効になりました" else "開発者モードが無効になりました",
+                                message = if (newMode) "🔧 開発者モードが有効になりました" else "開発者モードが無効になりました",
                                 duration = SnackbarDuration.Short
                             )
                             versionTapCount = 0
