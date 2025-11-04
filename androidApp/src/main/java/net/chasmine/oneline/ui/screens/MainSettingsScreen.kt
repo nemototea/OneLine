@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.ui.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,7 +32,7 @@ fun MainSettingsScreen(
     onNavigateToKmpVerification: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
     val currentThemeMode by settingsManager.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
     val isDeveloperMode by settingsManager.isDeveloperMode.collectAsState(initial = false)
     val scope = rememberCoroutineScope()

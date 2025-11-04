@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import net.chasmine.oneline.data.git.GitRepository
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val settingsManager = SettingsManager.getInstance(application)
+    private val settingsManager = SettingsManagerFactory.getInstance(application)
     private val gitRepository = GitRepository.getInstance(application)
 
     val gitRepoUrl = settingsManager.gitRepoUrl

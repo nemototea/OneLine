@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.*
 import kotlinx.coroutines.launch
 import net.chasmine.oneline.R
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +37,7 @@ fun AboutScreen(
 ) {
     val context = LocalContext.current
     val repositoryUrl = "https://github.com/nemototea/OneLine"
-    val settingsManager = remember { SettingsManager.getInstance(context) }
+    val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 

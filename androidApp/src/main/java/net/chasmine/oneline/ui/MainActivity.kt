@@ -52,7 +52,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.git.GitRepository
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.ui.components.CustomBottomBar
 import net.chasmine.oneline.ui.screens.AboutScreen
@@ -95,7 +95,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val settingsManager = remember { SettingsManager.getInstance(this@MainActivity) }
+            val settingsManager = remember { SettingsManagerFactory.getInstance(this@MainActivity) }
             val themeMode by settingsManager.themeMode.collectAsState(initial = net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM)
             
             OneLineTheme(
@@ -234,7 +234,7 @@ fun OneLineApp(
                     TextButton(
                         onClick = {
                             scope.launch {
-                                val settingsManager = SettingsManager.getInstance(context)
+                                val settingsManager = SettingsManagerFactory.getInstance(context)
                                 settingsManager.setLocalOnlyMode(true)
                                 showGitConfigDialog = false
                                 // ローカルモードで新規作成画面に遷移

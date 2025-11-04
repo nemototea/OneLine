@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.local.LocalRepository
 import net.chasmine.oneline.data.model.DiaryEntry
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.storage.FileStorage
 
 /**
@@ -18,7 +18,7 @@ import net.chasmine.oneline.data.storage.FileStorage
 class RepositoryManager private constructor(private val context: Context) {
 
     private val TAG = "RepositoryManager"
-    private val settingsManager = SettingsManager.getInstance(context)
+    private val settingsManager = SettingsManagerFactory.getInstance(context)
     private val gitRepository = GitRepository.getInstance(context)
     private val fileStorage = FileStorage(context)
     private val localRepository = LocalRepository(fileStorage)

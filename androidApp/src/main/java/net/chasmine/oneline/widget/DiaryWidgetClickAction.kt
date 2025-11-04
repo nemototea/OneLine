@@ -7,7 +7,7 @@ import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import net.chasmine.oneline.data.git.GitRepository
-import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.widget.popup.DiaryWidgetEntryActivity
 import net.chasmine.oneline.ui.MainActivity
 import kotlinx.coroutines.flow.first
@@ -28,7 +28,7 @@ class DiaryWidgetClickAction : ActionCallback {
         Log.d(TAG, "=== Widget clicked ===")
 
         try {
-            val settingsManager = SettingsManager.getInstance(context)
+            val settingsManager = SettingsManagerFactory.getInstance(context)
 
             // まず設定の有効性を確認
             val hasValidSettings = settingsManager.hasValidSettings.first()

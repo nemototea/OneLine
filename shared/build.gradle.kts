@@ -49,6 +49,9 @@ kotlin {
         androidMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
+            // DataStore Preferences (設定管理)
+            implementation(libs.androidx.datastore.preferences)
+
             // JGit (Git操作ライブラリ)
             implementation(libs.org.eclipse.jgit)
 
