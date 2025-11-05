@@ -46,6 +46,9 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(compose.materialIconsExtended)
 
+            // Lifecycle ViewModel (Compose Multiplatform)
+            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+
             // Compottie (Compose Multiplatform Lottie)
             implementation(libs.compottie)
             implementation(libs.compottie.resources)

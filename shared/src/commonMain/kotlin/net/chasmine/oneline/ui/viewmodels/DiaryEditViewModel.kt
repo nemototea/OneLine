@@ -1,11 +1,8 @@
 package net.chasmine.oneline.ui.viewmodels
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import net.chasmine.oneline.data.git.GitRepository
-import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.data.repository.RepositoryFactory
 import net.chasmine.oneline.data.model.DiaryEntry
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Clock
@@ -15,9 +12,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class DiaryEditViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repositoryManager = RepositoryManager.getInstance(application)
+/**
+ * 日記編集画面のViewModel（共通コード）
+ *
+ * @param repositoryFactory リポジトリファクトリー
+ */
+class DiaryEditViewModel(
+    private val repositoryFactory: RepositoryFactory
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState
@@ -32,17 +34,15 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
                 if (dateString == "new") {
                     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
                     val todayString = today.toString()
-                    
+
                     // 今日の日記が既に存在するかチェック
-                    val existingEntry = repositoryManager.getEntry(todayString)
-                    
+                    val existingEntry = repositoryFactory.getEntry(todayString)
+
                     if (existingEntry != null) {
                         // 既存の今日の日記がある場合は、それを編集モードで開く
-                        Log.d("DiaryEditViewModel", "Found existing entry for today: $todayString")
                         _uiState.value = UiState.Editing(existingEntry, isNew = false)
                     } else {
                         // 今日の日記がない場合は新規作成
-                        Log.d("DiaryEditViewModel", "No existing entry for today, creating new: $todayString")
                         _uiState.value = UiState.Editing(
                             DiaryEntry(
                                 date = today,
@@ -53,7 +53,7 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
                     }
                 } else {
                     // 特定の日付が指定された場合の既存処理
-                    val entry = repositoryManager.getEntry(dateString)
+                    val entry = repositoryFactory.getEntry(dateString)
 
                     if (entry != null) {
                         _uiState.value = UiState.Editing(entry, isNew = false)
@@ -70,7 +70,6 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
                     }
                 }
             } catch (e: Exception) {
-                Log.e("DiaryEditViewModel", "Failed to load entry", e)
                 _uiState.value = UiState.Error(e.message ?: "エントリの読み込みに失敗しました")
             }
         }
@@ -83,23 +82,21 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
                 _saveStatus.value = SaveStatus.Saving
 
                 try {
-                    val success = repositoryManager.saveEntry(currentState.entry)
-                    
+                    val success = repositoryFactory.saveEntry(currentState.entry)
+
                     if (success) {
                         // 保存成功後に同期を試行
-                        val syncSuccess = repositoryManager.syncRepository()
+                        val syncSuccess = repositoryFactory.syncRepository()
                         if (syncSuccess) {
                             _saveStatus.value = SaveStatus.Success
                         } else {
                             // 同期に失敗しても保存は成功
-                            Log.w("DiaryEditViewModel", "Save succeeded but sync failed")
                             _saveStatus.value = SaveStatus.Success
                         }
                     } else {
                         _saveStatus.value = SaveStatus.Error("日記の保存に失敗しました")
                     }
                 } catch (e: Exception) {
-                    Log.e("DiaryEditViewModel", "Failed to save entry", e)
                     _saveStatus.value = SaveStatus.Error(e.message ?: "保存中にエラーが発生しました")
                 }
             }
@@ -123,23 +120,21 @@ class DiaryEditViewModel(application: Application) : AndroidViewModel(applicatio
 
                 try {
                     val dateString = currentState.entry.date.toString()
-                    val success = repositoryManager.deleteEntry(dateString)
-                    
+                    val success = repositoryFactory.deleteEntry(dateString)
+
                     if (success) {
                         // 削除成功後に同期を試行
-                        val syncSuccess = repositoryManager.syncRepository()
+                        val syncSuccess = repositoryFactory.syncRepository()
                         if (syncSuccess) {
                             _saveStatus.value = SaveStatus.Success
                         } else {
                             // 同期に失敗しても削除は成功
-                            Log.w("DiaryEditViewModel", "Delete succeeded but sync failed")
                             _saveStatus.value = SaveStatus.Success
                         }
                     } else {
                         _saveStatus.value = SaveStatus.Error("日記の削除に失敗しました")
                     }
                 } catch (e: Exception) {
-                    Log.e("DiaryEditViewModel", "Failed to delete entry", e)
                     _saveStatus.value = SaveStatus.Error(e.message ?: "削除中にエラーが発生しました")
                 }
             }
