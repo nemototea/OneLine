@@ -49,12 +49,14 @@ expect class RepositoryFactory {
     suspend fun hasValidSettings(): Boolean
 
     /**
-     * リポジトリモード
+     * ローカルモードからGitモードへの移行
      */
-    enum class RepositoryMode {
-        LocalOnly,
-        Git
-    }
+    suspend fun migrateToGitMode(): MigrationResult
+
+    /**
+     * Gitモードからローカルモードへの移行
+     */
+    suspend fun migrateToLocalMode(clearGitData: Boolean): MigrationResult
 
     companion object {
         fun create(): RepositoryFactory

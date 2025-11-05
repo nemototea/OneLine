@@ -90,9 +90,18 @@ actual class RepositoryFactory private constructor(private val context: Context)
         return true // ローカルモードは常に有効
     }
 
-    actual enum class RepositoryMode {
-        LocalOnly,
-        Git
+    actual suspend fun migrateToGitMode(): MigrationResult {
+        // TODO: Git連携機能の完全な移行はPhase 5で実装予定
+        // 現在はRepositoryManager（androidApp）に依存しているため、ここでは未実装
+        Log.d(TAG, "migrateToGitMode not yet supported in RepositoryFactory")
+        return MigrationResult.UnknownError("Migration not yet supported in shared module. Use RepositoryManager directly.")
+    }
+
+    actual suspend fun migrateToLocalMode(clearGitData: Boolean): MigrationResult {
+        // TODO: Git連携機能の完全な移行はPhase 5で実装予定
+        // 現在はRepositoryManager（androidApp）に依存しているため、ここでは未実装
+        Log.d(TAG, "migrateToLocalMode not yet supported in RepositoryFactory")
+        return MigrationResult.UnknownError("Migration not yet supported in shared module. Use RepositoryManager directly.")
     }
 
     actual companion object {
