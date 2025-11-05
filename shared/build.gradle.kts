@@ -45,6 +45,10 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(compose.materialIconsExtended)
+
+            // Compottie (Compose Multiplatform Lottie)
+            implementation(libs.compottie)
+            implementation(libs.compottie.resources)
         }
 
         androidMain.dependencies {
