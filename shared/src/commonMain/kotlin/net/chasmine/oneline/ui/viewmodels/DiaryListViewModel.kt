@@ -1,27 +1,25 @@
 package net.chasmine.oneline.ui.viewmodels
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import net.chasmine.oneline.data.git.GitRepository
-import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.data.repository.RepositoryFactory
 import net.chasmine.oneline.data.model.DiaryEntry
-import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class DiaryListViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repositoryManager = RepositoryManager.getInstance(application)
-    private val settingsManager = SettingsManagerFactory.getInstance(application)
+/**
+ * 日記リスト画面のViewModel（共通コード）
+ *
+ * @param repositoryFactory リポジトリファクトリー
+ */
+class DiaryListViewModel(
+    private val repositoryFactory: RepositoryFactory
+) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -48,16 +46,16 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     init {
         viewModelScope.launch {
             // リポジトリを初期化
-            repositoryManager.initialize()
-            
-            val hasSettings = repositoryManager.hasValidSettings()
+            repositoryFactory.initialize()
+
+            val hasSettings = repositoryFactory.hasValidSettings()
             if (hasSettings) syncRepository()
         }
     }
 
     fun loadEntries() {
         viewModelScope.launch {
-            repositoryManager.getAllEntries().collect { diaryEntries ->
+            repositoryFactory.getAllEntries().collect { diaryEntries ->
                 allEntries = diaryEntries
                 currentPage = 0
                 _hasMoreData.value = allEntries.size > pageSize
@@ -70,8 +68,8 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
                 val todayEntryFound = diaryEntries.find { it.date == today }
                 _todayEntry.value = todayEntryFound
 
-                Log.d("DiaryListViewModel", "Loaded entries: ${diaryEntries.size}") // デバッグ用ログ
-                Log.d("DiaryListViewModel", "Today's entry: ${todayEntryFound?.content ?: "None"}")
+                println("DiaryListViewModel: Loaded entries: ${diaryEntries.size}") // デバッグ用ログ
+                println("DiaryListViewModel: Today's entry: ${todayEntryFound?.content ?: "None"}")
             }
         }
     }
@@ -97,18 +95,18 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
                     // まだデータがあるかチェック
                     _hasMoreData.value = endIndex < allEntries.size
 
-                    Log.d("DiaryListViewModel", "Loaded more entries: ${newEntries.size}")
+                    println("DiaryListViewModel: Loaded more entries: ${newEntries.size}")
                 } else {
                     _hasMoreData.value = false
                 }
             } catch (e: Exception) {
-                Log.e("DiaryListViewModel", "Failed to load more entries", e)
+                println("DiaryListViewModel: Failed to load more entries: ${e.message}")
             } finally {
                 _isLoadingMore.value = false
             }
         }
     }
-    
+
     /**
      * 今日の日記を保存
      */
@@ -117,17 +115,17 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
                 val entry = DiaryEntry(date = today, content = content)
-                val success = repositoryManager.saveEntry(entry)
-                
+                val success = repositoryFactory.saveEntry(entry)
+
                 if (success) {
                     // エントリーを再読み込み
                     loadEntries()
-                    Log.d("DiaryListViewModel", "Today's entry saved: $content")
+                    println("DiaryListViewModel: Today's entry saved: $content")
                 } else {
-                    Log.e("DiaryListViewModel", "Failed to save today's entry")
+                    println("DiaryListViewModel: Failed to save today's entry")
                 }
             } catch (e: Exception) {
-                Log.e("DiaryListViewModel", "Failed to save today's entry", e)
+                println("DiaryListViewModel: Failed to save today's entry: ${e.message}")
             }
         }
     }
@@ -135,7 +133,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
     private suspend fun initializeRepository() {
         _isLoading.value = true
         try {
-            val success = repositoryManager.initialize()
+            val success = repositoryFactory.initialize()
             if (!success) {
                 _syncStatus.value = SyncStatus.Error("リポジトリの初期化に失敗しました")
             }
@@ -151,7 +149,7 @@ class DiaryListViewModel(application: Application) : AndroidViewModel(applicatio
             _syncStatus.value = SyncStatus.Syncing
 
             try {
-                val success = repositoryManager.syncRepository()
+                val success = repositoryFactory.syncRepository()
                 if (success) {
                     _syncStatus.value = SyncStatus.Success
                     loadEntries() // 同期成功後にエントリを再ロード
