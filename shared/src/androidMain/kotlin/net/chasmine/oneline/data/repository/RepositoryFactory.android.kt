@@ -1,57 +1,93 @@
 package net.chasmine.oneline.data.repository
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import net.chasmine.oneline.data.model.DiaryEntry
+import net.chasmine.oneline.data.preferences.SettingsManager
+import net.chasmine.oneline.data.preferences.SettingsStorage
+import net.chasmine.oneline.data.storage.FileStorage
+import net.chasmine.oneline.data.local.LocalRepository
 
 /**
  * Android用のリポジトリファクトリー実装
  *
- * 注意: このファイルはexpect/actualの骨組みです。
- * 実際の実装は androidApp/src/main/java の RepositoryManager を使用します。
- * Phase 3以降で完全な実装に移行します。
+ * ローカルオンリーモードとGit連携モードを切り替えて適切なリポジトリを使用します。
+ * Note: Git連携機能は現在androidAppのGitRepositoryに依存しています。
+ * 完全なKMP対応はPhase 5で予定されています。
  */
 actual class RepositoryFactory private constructor(private val context: Context) {
 
+    private val TAG = "RepositoryFactory"
+    private val settingsStorage = SettingsStorage(context)
+    private val settingsManager = SettingsManager.getInstance(settingsStorage)
+    private val fileStorage = FileStorage(context)
+    private val localRepository = LocalRepository(fileStorage)
+
+    // TODO: GitRepository統合は後のフェーズで実装
+    // 現在はローカルリポジトリのみサポート
+
     actual suspend fun initialize(): Boolean {
-        // TODO: Phase 3で実装
-        // 現時点では androidApp の RepositoryManager を使用
-        return true
+        return try {
+            Log.d(TAG, "Initializing repository")
+            localRepository.initialize()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize repository", e)
+            false
+        }
     }
 
     actual suspend fun saveEntry(entry: DiaryEntry): Boolean {
-        // TODO: Phase 3で実装
-        return true
+        return try {
+            localRepository.saveEntry(entry)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save entry", e)
+            false
+        }
     }
 
     actual suspend fun getEntry(date: String): DiaryEntry? {
-        // TODO: Phase 3で実装
-        return null
+        return try {
+            localRepository.getEntry(date)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get entry", e)
+            null
+        }
     }
 
-    actual fun getAllEntries(): Flow<List<DiaryEntry>> {
-        // TODO: Phase 3で実装
-        return kotlinx.coroutines.flow.flow { emit(emptyList()) }
+    actual fun getAllEntries(): Flow<List<DiaryEntry>> = flow {
+        try {
+            localRepository.getAllEntries().collect { entries ->
+                emit(entries)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get all entries", e)
+            emit(emptyList())
+        }
     }
 
     actual suspend fun deleteEntry(date: String): Boolean {
-        // TODO: Phase 3で実装
-        return true
+        return try {
+            localRepository.deleteEntry(date)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to delete entry", e)
+            false
+        }
     }
 
     actual suspend fun syncRepository(): Boolean {
-        // TODO: Phase 3で実装
+        Log.d(TAG, "Sync not supported in current implementation")
         return true
     }
 
     actual suspend fun getCurrentMode(): RepositoryMode {
-        // TODO: Phase 3で実装
         return RepositoryMode.LocalOnly
     }
 
     actual suspend fun hasValidSettings(): Boolean {
-        // TODO: Phase 3で実装
-        return false
+        return true // ローカルモードは常に有効
     }
 
     actual enum class RepositoryMode {
@@ -60,15 +96,22 @@ actual class RepositoryFactory private constructor(private val context: Context)
     }
 
     actual companion object {
+        @Volatile
+        private var INSTANCE: RepositoryFactory? = null
+
         actual fun create(): RepositoryFactory {
             throw UnsupportedOperationException(
                 "RepositoryFactory.create() requires Android Context. " +
-                "This will be implemented in Phase 3 when we have proper platform abstractions."
+                "Use create(context) instead."
             )
         }
 
         fun create(context: Context): RepositoryFactory {
-            return RepositoryFactory(context.applicationContext)
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: RepositoryFactory(context.applicationContext).also {
+                    INSTANCE = it
+                }
+            }
         }
     }
 }
