@@ -14,10 +14,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.chasmine.oneline.ui.viewmodels.SettingsViewModel
 import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.data.git.GitRepositoryServiceImpl
+import net.chasmine.oneline.data.git.ValidationResult
 import net.chasmine.oneline.ui.components.MaterialAlertDialog
 import net.chasmine.oneline.ui.components.AlertType
 import net.chasmine.oneline.ui.components.LottieLoadingIndicator
@@ -28,10 +32,21 @@ import kotlinx.coroutines.launch
 fun GitSettingsScreen(
     onNavigateBack: () -> Unit,
     onSetupComplete: (() -> Unit)? = null,
-    isInitialSetup: Boolean = false,
-    viewModel: SettingsViewModel = viewModel()
+    isInitialSetup: Boolean = false
 ) {
     val context = LocalContext.current
+
+    // ViewModelの作成（共通化されたSettingsViewModelを使用）
+    val viewModel: SettingsViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val settingsManager = SettingsManagerFactory.getInstance(context)
+                val gitRepositoryService = GitRepositoryServiceImpl.getInstance(context)
+                return SettingsViewModel(settingsManager, gitRepositoryService) as T
+            }
+        }
+    )
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
@@ -57,7 +72,7 @@ fun GitSettingsScreen(
     var showCreateRepoHelpDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var validationMessage by remember { mutableStateOf("") }
-    var validationResult by remember { mutableStateOf<net.chasmine.oneline.data.git.GitRepository.ValidationResult?>(null) }
+    var validationResult by remember { mutableStateOf<ValidationResult?>(null) }
     var isValidationPassed by remember { mutableStateOf(false) }
     var pendingRepoUrl by remember { mutableStateOf("") }
 
@@ -87,9 +102,9 @@ fun GitSettingsScreen(
                 validationResult = state.result
                 validationMessage = state.message
                 isValidationPassed = when (state.result) {
-                    net.chasmine.oneline.data.git.GitRepository.ValidationResult.DIARY_REPOSITORY,
-                    net.chasmine.oneline.data.git.GitRepository.ValidationResult.LIKELY_DIARY_REPOSITORY,
-                    net.chasmine.oneline.data.git.GitRepository.ValidationResult.EMPTY_REPOSITORY -> true
+                    ValidationResult.DIARY_REPOSITORY,
+                    ValidationResult.LIKELY_DIARY_REPOSITORY,
+                    ValidationResult.EMPTY_REPOSITORY -> true
                     else -> false
                 }
                 showValidationDialog = true
@@ -344,17 +359,17 @@ fun GitSettingsScreen(
         // 検証結果ダイアログ
         if (showValidationDialog) {
             val dialogAlertType = when (validationResult) {
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.DIARY_REPOSITORY,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.LIKELY_DIARY_REPOSITORY,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.EMPTY_REPOSITORY -> AlertType.SUCCESS
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.UNKNOWN_REPOSITORY -> AlertType.WARNING
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.SUSPICIOUS_REPOSITORY,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.DANGEROUS_REPOSITORY,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.OWNERSHIP_VERIFICATION_FAILED,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.AUTHENTICATION_FAILED,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.REPOSITORY_NOT_FOUND,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.CONNECTION_FAILED,
-                net.chasmine.oneline.data.git.GitRepository.ValidationResult.VALIDATION_FAILED -> AlertType.ERROR
+                ValidationResult.DIARY_REPOSITORY,
+                ValidationResult.LIKELY_DIARY_REPOSITORY,
+                ValidationResult.EMPTY_REPOSITORY -> AlertType.SUCCESS
+                ValidationResult.UNKNOWN_REPOSITORY -> AlertType.WARNING
+                ValidationResult.SUSPICIOUS_REPOSITORY,
+                ValidationResult.DANGEROUS_REPOSITORY,
+                ValidationResult.OWNERSHIP_VERIFICATION_FAILED,
+                ValidationResult.AUTHENTICATION_FAILED,
+                ValidationResult.REPOSITORY_NOT_FOUND,
+                ValidationResult.CONNECTION_FAILED,
+                ValidationResult.VALIDATION_FAILED -> AlertType.ERROR
                 else -> AlertType.INFO
             }
             
