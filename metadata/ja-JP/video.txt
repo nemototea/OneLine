@@ -1,0 +1,2 @@
+# プロモーションビデオのYouTube URLをここに記載
+# 例: https://www.youtube.com/watch?v=xxxxx
