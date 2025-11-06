@@ -6,7 +6,9 @@ import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.repository.RepositoryFactory
 import net.chasmine.oneline.data.repository.RepositoryManager
+import net.chasmine.oneline.ui.viewmodels.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 /**
@@ -24,4 +26,7 @@ val androidAppModule = module {
 
     // RepositoryManager - androidApp 固有の実装
     single { RepositoryManager.getInstance(androidContext()) }
+
+    // SettingsViewModel - GitRepositoryServiceに依存するため、ここで定義
+    viewModel { SettingsViewModel(get(), get()) }
 }
