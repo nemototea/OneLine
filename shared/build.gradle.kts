@@ -49,6 +49,11 @@ kotlin {
             // Lifecycle ViewModel (Compose Multiplatform)
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
 
+            // Koin for Dependency Injection (Multiplatform)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+
             // Compottie (Compose Multiplatform Lottie)
             implementation(libs.compottie)
             implementation(libs.compottie.resources)

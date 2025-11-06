@@ -2,16 +2,15 @@ package net.chasmine.oneline.ui.screens
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import net.chasmine.oneline.data.preferences.SettingsManagerFactory
+import net.chasmine.oneline.data.preferences.SettingsManager
 import net.chasmine.oneline.data.repository.RepositoryManager
 import net.chasmine.oneline.data.repository.MigrationResult as SharedMigrationResult
+import org.koin.compose.koinInject
 
 /**
  * Android wrapper for DataStorageSettingsScreen
  *
- * Delegates to shared DataStorageSettingsScreen implementation with Android-specific dependencies
+ * Delegates to shared DataStorageSettingsScreen implementation with Koin-provided dependencies
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,9 +18,8 @@ fun DataStorageSettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToGitSettings: () -> Unit
 ) {
-    val context = LocalContext.current
-    val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
-    val repositoryManager = remember { RepositoryManager.getInstance(context) }
+    val settingsManager: SettingsManager = koinInject()
+    val repositoryManager: RepositoryManager = koinInject()
 
     net.chasmine.oneline.ui.screens.DataStorageSettingsScreen(
         onNavigateBack = onNavigateBack,
