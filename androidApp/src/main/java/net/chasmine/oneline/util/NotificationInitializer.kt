@@ -16,7 +16,7 @@ class NotificationInitializer(private val context: Context) {
     }
     
     private val notificationPrefs = NotificationPreferences.getInstance(context)
-    private val notificationManager = DiaryNotificationManager(context)
+    private val notificationManager = AndroidNotificationManager(context)
     
     /**
      * アプリ起動時の通知初期化処理
@@ -114,7 +114,7 @@ class NotificationInitializer(private val context: Context) {
      */
     private suspend fun handleNotificationDisabled(): InitializationResult {
         Log.d(TAG, "通知無効: スケジュールをキャンセル")
-        notificationManager.cancelDaily()
+        notificationManager.cancelDailyNotification()
         return InitializationResult.Cancelled
     }
     
@@ -125,7 +125,7 @@ class NotificationInitializer(private val context: Context) {
         val hour = notificationPrefs.notificationHour.first()
         val minute = notificationPrefs.notificationMinute.first()
         Log.d(TAG, "通知をスケジュール: ${hour}:${minute}")
-        notificationManager.scheduleDaily(hour, minute)
+        notificationManager.scheduleDailyNotification(hour, minute)
     }
     
     /**
