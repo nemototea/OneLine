@@ -4,8 +4,13 @@ import net.chasmine.oneline.data.model.DiaryEntry
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.plus
+import kotlinx.datetime.minus
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 /**
  * リグレッションテスト
@@ -18,11 +23,11 @@ class RegressionTest {
     @Test
     fun `DiaryEntry - 日付フォーマットが変更されていないこと`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val entry = DiaryEntry(testDate, "テスト内容")
 
         // When
-        val dateString = entry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val dateString = entry.date.toString()
 
         // Then
         assertEquals("日付フォーマットが変更されていないこと", "2025-08-03", dateString)
@@ -36,7 +41,7 @@ class RegressionTest {
     @Test
     fun `DiaryEntry - データクラスの構造が変更されていないこと`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val testContent = "テスト内容"
 
         // When
@@ -54,11 +59,11 @@ class RegressionTest {
     @Test
     fun `ファイル名生成 - ローカルリポジトリのファイル名規則が変更されていないこと`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val expectedFileName = "2025-08-03.txt"
 
         // When
-        val actualFileName = "${testDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+        val actualFileName = "${testDate}.txt"
 
         // Then
         assertEquals("ファイル名規則が変更されていないこと", expectedFileName, actualFileName)
@@ -72,7 +77,7 @@ class RegressionTest {
     @Test
     fun `データ整合性 - 空の内容の処理が変更されていないこと`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val emptyContent = ""
 
         // When
@@ -90,7 +95,7 @@ class RegressionTest {
     @Test
     fun `データ整合性 - null安全性が保たれていること`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val testContent = "テスト内容"
 
         // When
@@ -116,7 +121,7 @@ class RegressionTest {
         val startTime = System.currentTimeMillis()
         val entries = (1..entryCount).map { i ->
             DiaryEntry(
-                LocalDate.of(2025, 1, 1).plusDays(i.toLong()),
+                LocalDate(2025, 1, 1).plus(DatePeriod(days = i)),
                 "日記 $i - ${"内容".repeat(10)}" // 少し長めの内容
             )
         }
@@ -139,11 +144,11 @@ class RegressionTest {
     fun `ソート機能 - 日付ソートの動作が変更されていないこと`() {
         // Given
         val entries = listOf(
-            DiaryEntry(LocalDate.of(2025, 8, 3), "3日目"),
-            DiaryEntry(LocalDate.of(2025, 8, 1), "1日目"),
-            DiaryEntry(LocalDate.of(2025, 8, 5), "5日目"),
-            DiaryEntry(LocalDate.of(2025, 8, 2), "2日目"),
-            DiaryEntry(LocalDate.of(2025, 8, 4), "4日目")
+            DiaryEntry(LocalDate(2025, 8, 3), "3日目"),
+            DiaryEntry(LocalDate(2025, 8, 1), "1日目"),
+            DiaryEntry(LocalDate(2025, 8, 5), "5日目"),
+            DiaryEntry(LocalDate(2025, 8, 2), "2日目"),
+            DiaryEntry(LocalDate(2025, 8, 4), "4日目")
         )
 
         // When - 新しい順（降順）でソート
@@ -152,14 +157,14 @@ class RegressionTest {
         val sortedAsc = entries.sortedBy { it.date }
 
         // Then - 降順ソート
-        assertEquals("降順ソート1番目", LocalDate.of(2025, 8, 5), sortedDesc[0].date)
-        assertEquals("降順ソート2番目", LocalDate.of(2025, 8, 4), sortedDesc[1].date)
-        assertEquals("降順ソート最後", LocalDate.of(2025, 8, 1), sortedDesc.last().date)
+        assertEquals("降順ソート1番目", LocalDate(2025, 8, 5), sortedDesc[0].date)
+        assertEquals("降順ソート2番目", LocalDate(2025, 8, 4), sortedDesc[1].date)
+        assertEquals("降順ソート最後", LocalDate(2025, 8, 1), sortedDesc.last().date)
 
         // 昇順ソート
-        assertEquals("昇順ソート1番目", LocalDate.of(2025, 8, 1), sortedAsc[0].date)
-        assertEquals("昇順ソート2番目", LocalDate.of(2025, 8, 2), sortedAsc[1].date)
-        assertEquals("昇順ソート最後", LocalDate.of(2025, 8, 5), sortedAsc.last().date)
+        assertEquals("昇順ソート1番目", LocalDate(2025, 8, 1), sortedAsc[0].date)
+        assertEquals("昇順ソート2番目", LocalDate(2025, 8, 2), sortedAsc[1].date)
+        assertEquals("昇順ソート最後", LocalDate(2025, 8, 5), sortedAsc.last().date)
         
         // リグレッション検証: ソート後のデータ整合性
         assertEquals("ソート後もエントリー数が変わらないこと", entries.size, sortedDesc.size)
@@ -170,12 +175,12 @@ class RegressionTest {
     fun `フィルタリング機能 - 空でないエントリーの抽出が変更されていないこと`() {
         // Given
         val entries = listOf(
-            DiaryEntry(LocalDate.of(2025, 8, 1), ""),
-            DiaryEntry(LocalDate.of(2025, 8, 2), "内容あり"),
-            DiaryEntry(LocalDate.of(2025, 8, 3), "   "), // 空白のみ
-            DiaryEntry(LocalDate.of(2025, 8, 4), "もう一つの内容"),
-            DiaryEntry(LocalDate.of(2025, 8, 5), "\n\t"), // 改行・タブのみ
-            DiaryEntry(LocalDate.of(2025, 8, 6), "最後の内容")
+            DiaryEntry(LocalDate(2025, 8, 1), ""),
+            DiaryEntry(LocalDate(2025, 8, 2), "内容あり"),
+            DiaryEntry(LocalDate(2025, 8, 3), "   "), // 空白のみ
+            DiaryEntry(LocalDate(2025, 8, 4), "もう一つの内容"),
+            DiaryEntry(LocalDate(2025, 8, 5), "\n\t"), // 改行・タブのみ
+            DiaryEntry(LocalDate(2025, 8, 6), "最後の内容")
         )
 
         // When
@@ -202,9 +207,9 @@ class RegressionTest {
     @Test
     fun `境界値テスト - 極端な日付での動作が変更されていないこと`() {
         // Given - 極端な日付
-        val minDate = LocalDate.of(1900, 1, 1)
-        val maxDate = LocalDate.of(2100, 12, 31)
-        val leapYearDate = LocalDate.of(2024, 2, 29) // うるう年
+        val minDate = LocalDate(1900, 1, 1)
+        val maxDate = LocalDate(2100, 12, 31)
+        val leapYearDate = LocalDate(2024, 2, 29) // うるう年
 
         // When
         val minEntry = DiaryEntry(minDate, "最小日付")
@@ -218,11 +223,11 @@ class RegressionTest {
         
         // リグレッション検証: 日付の文字列化
         assertEquals("最小日付の文字列化", "1900-01-01", 
-            minEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            minEntry.date.toString())
         assertEquals("最大日付の文字列化", "2100-12-31", 
-            maxEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            maxEntry.date.toString())
         assertEquals("うるう年の文字列化", "2024-02-29", 
-            leapEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            leapEntry.date.toString())
     }
 
     @Test
@@ -240,7 +245,7 @@ class RegressionTest {
 
         // When & Then
         specialChars.forEachIndexed { index, content ->
-            val entry = DiaryEntry(LocalDate.of(2025, 8, index + 1), content)
+            val entry = DiaryEntry(LocalDate(2025, 8, index + 1), content)
             
             assertEquals("特殊文字が正しく保存されること", content, entry.content)
             assertNotNull("特殊文字でもエントリーが作成されること", entry)
@@ -260,7 +265,7 @@ class RegressionTest {
         repeat(iterations) { i ->
             val entries = (1..100).map { j ->
                 DiaryEntry(
-                    LocalDate.of(2025, 1, 1).plusDays((i * 100 + j).toLong()),
+                    LocalDate(2025, 1, 1).plus(DatePeriod(days = i * 100 + j)),
                     "メモリテスト $i-$j"
                 )
             }
@@ -295,7 +300,7 @@ class RegressionTest {
             Thread {
                 val entries = (1..entriesPerThread).map { entryId ->
                     DiaryEntry(
-                        LocalDate.of(2025, 1, 1).plusDays((threadId * 1000 + entryId).toLong()),
+                        LocalDate(2025, 1, 1).plus(DatePeriod(days = threadId * 1000 + entryId)),
                         "スレッド $threadId エントリー $entryId"
                     )
                 }

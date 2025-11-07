@@ -24,7 +24,7 @@ fun GitSettingsScreen(
     val repositoryFactory: RepositoryFactory = koinInject()
     val viewModel: SettingsViewModel = koinViewModel()
 
-    net.chasmine.oneline.ui.screens.GitSettingsScreen(
+    GitSettingsScreenImpl(
         onNavigateBack = onNavigateBack,
         onSetupComplete = onSetupComplete,
         isInitialSetup = isInitialSetup,

@@ -20,7 +20,7 @@ fun CalendarScreen(
     val repositoryFactory = remember { RepositoryFactory.create(context) }
 
     // Delegate to shared implementation
-    net.chasmine.oneline.ui.screens.CalendarScreen(
+    CalendarScreenImpl(
         onNavigateToEdit = onNavigateToEdit,
         onNavigateToSettings = onNavigateToSettings,
         repositoryFactory = repositoryFactory

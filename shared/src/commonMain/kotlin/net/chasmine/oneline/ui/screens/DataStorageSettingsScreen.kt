@@ -21,7 +21,7 @@ import net.chasmine.oneline.data.repository.MigrationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DataStorageSettingsScreen(
+fun DataStorageSettingsScreenImpl(
     onNavigateBack: () -> Unit,
     onNavigateToGitSettings: () -> Unit,
     settingsManager: SettingsManager,

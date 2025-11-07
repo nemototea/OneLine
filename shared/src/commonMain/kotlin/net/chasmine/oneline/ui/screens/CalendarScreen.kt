@@ -72,7 +72,7 @@ data class YearMonth(val year: Int, val month: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(
+fun CalendarScreenImpl(
     onNavigateToEdit: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
     repositoryFactory: RepositoryFactory

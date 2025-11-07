@@ -17,7 +17,7 @@ fun DiaryListScreen(
     val viewModel: DiaryListViewModel = koinViewModel()
 
     // Delegate to shared implementation
-    net.chasmine.oneline.ui.screens.DiaryListScreen(
+    DiaryListScreenImpl(
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToEdit = onNavigateToEdit,
         viewModel = viewModel

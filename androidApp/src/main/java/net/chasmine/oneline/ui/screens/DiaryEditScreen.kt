@@ -17,7 +17,7 @@ fun DiaryEditScreen(
     val viewModel: DiaryEditViewModel = koinViewModel()
 
     // Delegate to shared implementation
-    net.chasmine.oneline.ui.screens.DiaryEditScreen(
+    DiaryEditScreenImpl(
         date = date,
         onNavigateBack = onNavigateBack,
         viewModel = viewModel

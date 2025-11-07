@@ -21,7 +21,7 @@ fun DataStorageSettingsScreen(
     val settingsManager: SettingsManager = koinInject()
     val repositoryManager: RepositoryManager = koinInject()
 
-    net.chasmine.oneline.ui.screens.DataStorageSettingsScreen(
+    DataStorageSettingsScreenImpl(
         onNavigateBack = onNavigateBack,
         onNavigateToGitSettings = onNavigateToGitSettings,
         settingsManager = settingsManager,

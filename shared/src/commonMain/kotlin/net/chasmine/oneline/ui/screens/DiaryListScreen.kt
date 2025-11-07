@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiaryListScreen(
+fun DiaryListScreenImpl(
     onNavigateToSettings: () -> Unit,
     onNavigateToEdit: (String) -> Unit,
     viewModel: DiaryListViewModel

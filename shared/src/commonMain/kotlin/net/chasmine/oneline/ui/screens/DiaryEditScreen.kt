@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun DiaryEditScreen(
+fun DiaryEditScreenImpl(
     date: String,
     onNavigateBack: () -> Unit,
     viewModel: DiaryEditViewModel

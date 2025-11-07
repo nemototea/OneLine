@@ -22,7 +22,7 @@ import net.chasmine.oneline.ui.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainSettingsScreen(
+fun MainSettingsScreenImpl(
     onNavigateBack: () -> Unit,
     onNavigateToDataStorage: () -> Unit,
     onNavigateToGitSettings: () -> Unit,

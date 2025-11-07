@@ -27,8 +27,8 @@ class OneLineApplication : Application() {
 
             // モジュールをロード
             modules(
-                viewModelModule,    // 共通ViewModelモジュール
-                androidAppModule    // AndroidApp固有のモジュール
+                androidAppModule,   // AndroidApp固有のモジュール（依存性を先に提供）
+                viewModelModule     // 共通ViewModelモジュール
             )
         }
     }
