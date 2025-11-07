@@ -44,9 +44,12 @@ actual class RepositoryFactory private constructor() {
         return false
     }
 
-    actual enum class RepositoryMode {
-        LocalOnly,
-        Git
+    actual suspend fun migrateToGitMode(): MigrationResult {
+        TODO("iOS implementation will be added in Phase 3")
+    }
+
+    actual suspend fun migrateToLocalMode(clearGitData: Boolean): MigrationResult {
+        TODO("iOS implementation will be added in Phase 3")
     }
 
     actual companion object {

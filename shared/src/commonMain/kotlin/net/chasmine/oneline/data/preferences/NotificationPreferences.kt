@@ -3,6 +3,7 @@ package net.chasmine.oneline.data.preferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.chasmine.oneline.util.synchronized
+import kotlin.concurrent.Volatile
 
 /**
  * 通知設定の管理クラス（共通コード）
