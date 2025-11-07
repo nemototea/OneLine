@@ -4,8 +4,13 @@ import net.chasmine.oneline.data.model.DiaryEntry
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.plus
+import kotlinx.datetime.minus
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 /**
  * エラーハンドリングテスト
@@ -19,12 +24,12 @@ class ErrorHandlingTest {
     fun `ファイルシステムエラー - 権限不足での書き込み失敗`() {
         // Given
         val testDir = createTempDir("diary_permission_test")
-        val testEntry = DiaryEntry(LocalDate.of(2025, 8, 3), "権限テスト")
+        val testEntry = DiaryEntry(LocalDate(2025, 8, 3), "権限テスト")
         
         try {
             // When - ディレクトリを読み取り専用に設定
             testDir.setReadOnly()
-            val fileName = "${testEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+            val fileName = "${testEntry.date}.txt"
             val testFile = File(testDir, fileName)
 
             var caughtException: Exception? = null
@@ -54,11 +59,11 @@ class ErrorHandlingTest {
     fun `ファイルシステムエラー - ディスク容量不足のシミュレーション`() {
         // Given
         val testDir = createTempDir("diary_space_test")
-        val testEntry = DiaryEntry(LocalDate.of(2025, 8, 3), "容量テスト")
+        val testEntry = DiaryEntry(LocalDate(2025, 8, 3), "容量テスト")
         
         try {
             // When - 非常に大きなファイルの作成を試行
-            val fileName = "${testEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+            val fileName = "${testEntry.date}.txt"
             val testFile = File(testDir, fileName)
             val largeContent = "x".repeat(Int.MAX_VALUE / 1000) // 大きなコンテンツ
 
@@ -114,7 +119,7 @@ class ErrorHandlingTest {
                     // 日付の妥当性をチェック
                     try {
                         val datePart = file.name.substringBefore(".txt")
-                        LocalDate.parse(datePart, DateTimeFormatter.ISO_LOCAL_DATE)
+                        LocalDate.parse(datePart)
                         validFiles.add(file)
                     } catch (e: Exception) {
                         invalidFilesList.add(file)
@@ -156,7 +161,7 @@ class ErrorHandlingTest {
             val entries = mutableListOf<DiaryEntry>()
             repeat(largeDataSize) { i ->
                 val entry = DiaryEntry(
-                    LocalDate.of(2025, 1, 1).plusDays(i.toLong()),
+                    LocalDate(2025, 1, 1).plus(DatePeriod(days = i)),
                     "大量データテスト $i - ${"内容".repeat(100)}"
                 )
                 entries.add(entry)
@@ -259,14 +264,14 @@ class ErrorHandlingTest {
         invalidDates.forEach { dateString ->
             var caughtException: Exception? = null
             try {
-                LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
+                LocalDate.parse(dateString)
             } catch (e: Exception) {
                 caughtException = e
             }
 
             assertNotNull("不正な日付 '$dateString' で例外が発生すること", caughtException)
             assertTrue("適切な例外タイプであること", 
-                caughtException is java.time.format.DateTimeParseException)
+                caughtException is IllegalArgumentException)
         }
     }
 
@@ -278,10 +283,10 @@ class ErrorHandlingTest {
         try {
             // 制御文字を含む内容
             val controlChars = "\u0000\u0001\u0002\u0003\u0004\u0005"
-            val testEntry = DiaryEntry(LocalDate.of(2025, 8, 3), "制御文字テスト: $controlChars")
+            val testEntry = DiaryEntry(LocalDate(2025, 8, 3), "制御文字テスト: $controlChars")
             
             // When - 制御文字を含むファイルの保存・読み込み
-            val fileName = "${testEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+            val fileName = "${testEntry.date}.txt"
             val testFile = File(testDir, fileName)
             
             var writeException: Exception? = null

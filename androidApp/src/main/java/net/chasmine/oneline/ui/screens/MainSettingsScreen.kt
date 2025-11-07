@@ -24,7 +24,7 @@ fun MainSettingsScreen(
     val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
 
     // Delegate to shared implementation
-    net.chasmine.oneline.ui.screens.MainSettingsScreen(
+    MainSettingsScreenImpl(
         onNavigateBack = onNavigateBack,
         onNavigateToDataStorage = onNavigateToDataStorage,
         onNavigateToGitSettings = onNavigateToGitSettings,

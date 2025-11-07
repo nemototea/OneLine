@@ -25,7 +25,7 @@ import net.chasmine.oneline.ui.components.LottieLoadingIndicator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GitSettingsScreen(
+fun GitSettingsScreenImpl(
     onNavigateBack: () -> Unit,
     onSetupComplete: (() -> Unit)? = null,
     isInitialSetup: Boolean = false,

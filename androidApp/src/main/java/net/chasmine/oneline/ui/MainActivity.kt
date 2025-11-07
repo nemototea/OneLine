@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.koin.compose.KoinContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -95,25 +96,27 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val settingsManager = remember { SettingsManagerFactory.getInstance(this@MainActivity) }
-            val themeMode by settingsManager.themeMode.collectAsState(initial = net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM)
-            
-            OneLineTheme(
-                darkTheme = when (themeMode) {
-                    net.chasmine.oneline.ui.theme.ThemeMode.LIGHT -> false
-                    net.chasmine.oneline.ui.theme.ThemeMode.DARK -> true
-                    net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
-                }
-            ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+            KoinContext {
+                val settingsManager = remember { SettingsManagerFactory.getInstance(this@MainActivity) }
+                val themeMode by settingsManager.themeMode.collectAsState(initial = net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM)
+                
+                OneLineTheme(
+                    darkTheme = when (themeMode) {
+                        net.chasmine.oneline.ui.theme.ThemeMode.LIGHT -> false
+                        net.chasmine.oneline.ui.theme.ThemeMode.DARK -> true
+                        net.chasmine.oneline.ui.theme.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+                    }
                 ) {
-                    OneLineApp(
-                        fromWidget = fromWidget,
-                        openNewEntry = openNewEntry,
-                        openSettings = openSettings
-                    )
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        OneLineApp(
+                            fromWidget = fromWidget,
+                            openNewEntry = openNewEntry,
+                            openSettings = openSettings
+                        )
+                    }
                 }
             }
         }

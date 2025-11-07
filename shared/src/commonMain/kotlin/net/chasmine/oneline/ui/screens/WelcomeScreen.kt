@@ -39,7 +39,7 @@ data class TutorialPage(
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalResourceApi::class)
 @Composable
-fun WelcomeScreen(
+fun WelcomeScreenImpl(
     onLocalModeSelected: () -> Unit,
     onGitModeSelected: () -> Unit,
     settingsManager: SettingsManager

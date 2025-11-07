@@ -3,7 +3,13 @@ package net.chasmine.oneline
 import net.chasmine.oneline.data.model.DiaryEntry
 import org.junit.Assert.*
 import org.junit.Test
-import java.time.LocalDate
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.plus
+import kotlinx.datetime.minus
 
 /**
  * シンプルで実用的なテスト
@@ -16,7 +22,7 @@ class SimpleTest {
     @Test
     fun `DiaryEntry - 基本的な作成と取得が正常に動作すること`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val testContent = "今日は良い天気でした。"
 
         // When
@@ -30,7 +36,7 @@ class SimpleTest {
     @Test
     fun `DiaryEntry - 空の内容でも作成できること`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val emptyContent = ""
 
         // When
@@ -44,7 +50,7 @@ class SimpleTest {
     @Test
     fun `DiaryEntry - 長い内容でも作成できること`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
         val longContent = "今日は".repeat(1000) // 3000文字の長い内容
 
         // When
@@ -59,9 +65,9 @@ class SimpleTest {
     @Test
     fun `DiaryEntry - 複数のエントリーを作成して比較できること`() {
         // Given
-        val date1 = LocalDate.of(2025, 8, 1)
-        val date2 = LocalDate.of(2025, 8, 2)
-        val date3 = LocalDate.of(2025, 8, 3)
+        val date1 = LocalDate(2025, 8, 1)
+        val date2 = LocalDate(2025, 8, 2)
+        val date3 = LocalDate(2025, 8, 3)
 
         // When
         val entry1 = DiaryEntry(date1, "1日目の日記")
@@ -81,26 +87,26 @@ class SimpleTest {
     fun `DiaryEntry - 日付でソートできること`() {
         // Given
         val entries = listOf(
-            DiaryEntry(LocalDate.of(2025, 8, 3), "3日目"),
-            DiaryEntry(LocalDate.of(2025, 8, 1), "1日目"),
-            DiaryEntry(LocalDate.of(2025, 8, 2), "2日目")
+            DiaryEntry(LocalDate(2025, 8, 3), "3日目"),
+            DiaryEntry(LocalDate(2025, 8, 1), "1日目"),
+            DiaryEntry(LocalDate(2025, 8, 2), "2日目")
         )
 
         // When
         val sortedEntries = entries.sortedByDescending { it.date }
 
         // Then
-        assertEquals("ソート後の1番目", LocalDate.of(2025, 8, 3), sortedEntries[0].date)
-        assertEquals("ソート後の2番目", LocalDate.of(2025, 8, 2), sortedEntries[1].date)
-        assertEquals("ソート後の3番目", LocalDate.of(2025, 8, 1), sortedEntries[2].date)
+        assertEquals("ソート後の1番目", LocalDate(2025, 8, 3), sortedEntries[0].date)
+        assertEquals("ソート後の2番目", LocalDate(2025, 8, 2), sortedEntries[1].date)
+        assertEquals("ソート後の3番目", LocalDate(2025, 8, 1), sortedEntries[2].date)
     }
 
     @Test
     fun `DiaryEntry - 今日の日記を識別できること`() {
         // Given
-        val today = LocalDate.now()
-        val yesterday = today.minusDays(1)
-        val tomorrow = today.plusDays(1)
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val yesterday = today.minus(DatePeriod(days = 1))
+        val tomorrow = today.plus(DatePeriod(days = 1))
 
         val entries = listOf(
             DiaryEntry(yesterday, "昨日の日記"),
@@ -119,7 +125,7 @@ class SimpleTest {
     @Test
     fun `文字列処理 - 日付フォーマットが正しく動作すること`() {
         // Given
-        val testDate = LocalDate.of(2025, 8, 3)
+        val testDate = LocalDate(2025, 8, 3)
 
         // When
         val dateString = testDate.toString()
@@ -144,10 +150,10 @@ class SimpleTest {
     fun `リスト操作 - フィルタリングが正しく動作すること`() {
         // Given
         val entries = listOf(
-            DiaryEntry(LocalDate.of(2025, 8, 1), ""),
-            DiaryEntry(LocalDate.of(2025, 8, 2), "内容あり"),
-            DiaryEntry(LocalDate.of(2025, 8, 3), ""),
-            DiaryEntry(LocalDate.of(2025, 8, 4), "もう一つの内容")
+            DiaryEntry(LocalDate(2025, 8, 1), ""),
+            DiaryEntry(LocalDate(2025, 8, 2), "内容あり"),
+            DiaryEntry(LocalDate(2025, 8, 3), ""),
+            DiaryEntry(LocalDate(2025, 8, 4), "もう一つの内容")
         )
 
         // When
@@ -168,7 +174,7 @@ class SimpleTest {
         val startTime = System.currentTimeMillis()
         val entries = (1..entryCount).map { i ->
             DiaryEntry(
-                LocalDate.of(2025, 1, 1).plusDays(i.toLong()),
+                LocalDate(2025, 1, 1).plus(DatePeriod(days = i)),
                 "日記 $i"
             )
         }

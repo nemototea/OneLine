@@ -20,7 +20,7 @@ fun WelcomeScreen(
     val settingsManager = remember { SettingsManagerFactory.getInstance(context) }
 
     // Delegate to shared implementation
-    net.chasmine.oneline.ui.screens.WelcomeScreen(
+    WelcomeScreenImpl(
         onLocalModeSelected = onLocalModeSelected,
         onGitModeSelected = onGitModeSelected,
         settingsManager = settingsManager

@@ -4,8 +4,13 @@ import net.chasmine.oneline.data.model.DiaryEntry
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.plus
+import kotlinx.datetime.minus
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 /**
  * 統合テスト
@@ -19,8 +24,8 @@ class IntegrationTest {
     fun `ファイルシステム統合 - ローカルストレージの基本動作`() {
         // Given
         val testDir = createTempDir("diary_integration_test")
-        val testEntry = DiaryEntry(LocalDate.of(2025, 8, 3), "統合テスト用日記")
-        val fileName = "${testEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+        val testEntry = DiaryEntry(LocalDate(2025, 8, 3), "統合テスト用日記")
+        val fileName = "${testEntry.date}.txt"
         val testFile = File(testDir, fileName)
 
         try {
@@ -50,15 +55,15 @@ class IntegrationTest {
         // Given
         val testDir = createTempDir("diary_multi_test")
         val entries = listOf(
-            DiaryEntry(LocalDate.of(2025, 8, 1), "1日目の日記"),
-            DiaryEntry(LocalDate.of(2025, 8, 2), "2日目の日記"),
-            DiaryEntry(LocalDate.of(2025, 8, 3), "3日目の日記")
+            DiaryEntry(LocalDate(2025, 8, 1), "1日目の日記"),
+            DiaryEntry(LocalDate(2025, 8, 2), "2日目の日記"),
+            DiaryEntry(LocalDate(2025, 8, 3), "3日目の日記")
         )
 
         try {
             // When - 複数ファイルを保存
             entries.forEach { entry ->
-                val fileName = "${entry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+                val fileName = "${entry.date}.txt"
                 val file = File(testDir, fileName)
                 file.writeText(entry.content)
             }
@@ -89,12 +94,12 @@ class IntegrationTest {
     fun `エラーハンドリング統合 - ファイル操作エラーの処理`() {
         // Given
         val testDir = createTempDir("diary_error_test")
-        val testEntry = DiaryEntry(LocalDate.of(2025, 8, 3), "エラーテスト")
+        val testEntry = DiaryEntry(LocalDate(2025, 8, 3), "エラーテスト")
 
         try {
             // When - 読み取り専用ディレクトリでの書き込みテスト
             testDir.setReadOnly()
-            val fileName = "${testEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+            val fileName = "${testEntry.date}.txt"
             val testFile = File(testDir, fileName)
 
             var writeException: Exception? = null
@@ -210,8 +215,8 @@ class IntegrationTest {
             val startTime = System.currentTimeMillis()
             
             repeat(fileCount) { i ->
-                val date = LocalDate.of(2025, 1, 1).plusDays(i.toLong())
-                val fileName = "${date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+                val date = LocalDate(2025, 1, 1).plus(DatePeriod(days = i))
+                val fileName = "${date}.txt"
                 val file = File(testDir, fileName)
                 file.writeText("日記 $i - ${"内容".repeat(50)}")
             }
@@ -248,11 +253,11 @@ class IntegrationTest {
         // Given
         val testDir = createTempDir("diary_encoding_test")
         val specialContent = "日本語 🎉 émojis αβγ ñáéíóú"
-        val testEntry = DiaryEntry(LocalDate.of(2025, 8, 3), specialContent)
+        val testEntry = DiaryEntry(LocalDate(2025, 8, 3), specialContent)
 
         try {
             // When - 特殊文字を含むファイルの保存・読み込み
-            val fileName = "${testEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+            val fileName = "${testEntry.date}.txt"
             val testFile = File(testDir, fileName)
             
             testFile.writeText(testEntry.content, Charsets.UTF_8)
@@ -342,8 +347,8 @@ class IntegrationTest {
         
         try {
             // Scenario 1: 新規日記の作成
-            val newEntry = DiaryEntry(LocalDate.now(), "今日の日記を書きました")
-            val newFileName = "${newEntry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+            val newEntry = DiaryEntry(Clock.System.todayIn(TimeZone.currentSystemDefault()), "今日の日記を書きました")
+            val newFileName = "${newEntry.date}.txt"
             val newFile = File(testDir, newFileName)
             newFile.writeText(newEntry.content)
             
@@ -357,12 +362,12 @@ class IntegrationTest {
 
             // Scenario 3: 複数日記の管理
             val additionalEntries = listOf(
-                DiaryEntry(LocalDate.now().minusDays(1), "昨日の日記"),
-                DiaryEntry(LocalDate.now().minusDays(2), "一昨日の日記")
+                DiaryEntry(Clock.System.todayIn(TimeZone.currentSystemDefault()).minus(DatePeriod(days = 1)), "昨日の日記"),
+                DiaryEntry(Clock.System.todayIn(TimeZone.currentSystemDefault()).minus(DatePeriod(days = 2)), "一昨日の日記")
             )
             
             additionalEntries.forEach { entry ->
-                val fileName = "${entry.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}.txt"
+                val fileName = "${entry.date}.txt"
                 val file = File(testDir, fileName)
                 file.writeText(entry.content)
             }
