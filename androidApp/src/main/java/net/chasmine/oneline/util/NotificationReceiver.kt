@@ -17,12 +17,14 @@ class NotificationReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "NotificationReceiver"
+        private const val DEFAULT_NOTIFICATION_TITLE = "今日の一行を書きませんか？"
+        private const val DEFAULT_NOTIFICATION_BODY = "今日はどんな一日でしたか？日記を書いて記録しましょう。"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "通知受信: ${intent.action}")
 
-        val notificationManager = DiaryNotificationManager(context)
+        val notificationManager = AndroidNotificationManager(context)
         val repositoryManager = RepositoryManager.getInstance(context)
         val notificationPrefs = NotificationPreferences.getInstance(context)
 
@@ -39,7 +41,10 @@ class NotificationReceiver : BroadcastReceiver() {
 
                 if (shouldShowNotification) {
                     // 今日の日記がまだ書かれていない場合のみ通知を表示
-                    notificationManager.showNotification()
+                    notificationManager.showNotification(
+                        DEFAULT_NOTIFICATION_TITLE,
+                        DEFAULT_NOTIFICATION_BODY
+                    )
                 } else {
                     Log.d(TAG, "今日の日記は既に書かれているため通知をスキップします")
                 }
@@ -51,7 +56,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     val minute = notificationPrefs.notificationMinute.value
 
                     Log.d(TAG, "次回通知をスケジュール: ${hour}:${minute}")
-                    notificationManager.scheduleDaily(hour, minute)
+                    notificationManager.scheduleDailyNotification(hour, minute)
                 } else {
                     Log.d(TAG, "通知が無効になっているため、次回通知をスケジュールしません")
                 }
@@ -59,7 +64,10 @@ class NotificationReceiver : BroadcastReceiver() {
             } catch (e: Exception) {
                 Log.e(TAG, "通知処理中にエラーが発生しました", e)
                 // エラーが発生した場合でも通知を表示
-                notificationManager.showNotification()
+                notificationManager.showNotification(
+                    DEFAULT_NOTIFICATION_TITLE,
+                    DEFAULT_NOTIFICATION_BODY
+                )
 
                 // 次回通知もスケジュール
                 try {
@@ -67,7 +75,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     if (isEnabled) {
                         val hour = notificationPrefs.notificationHour.value
                         val minute = notificationPrefs.notificationMinute.value
-                        notificationManager.scheduleDaily(hour, minute)
+                        notificationManager.scheduleDailyNotification(hour, minute)
                     }
                 } catch (scheduleError: Exception) {
                     Log.e(TAG, "次回通知のスケジュールに失敗しました", scheduleError)

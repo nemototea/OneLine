@@ -18,14 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.preferences.NotificationPreferences
-import net.chasmine.oneline.util.DiaryNotificationManager
+import net.chasmine.oneline.util.AndroidNotificationManager
 
 @Composable
 fun NotificationSettingsSection() {
     val context = LocalContext.current
     val notificationPrefs = remember { NotificationPreferences.getInstance(context) }
-    val notificationManager = remember { DiaryNotificationManager(context) }
+    val notificationManager = remember { AndroidNotificationManager(context) }
+    val coroutineScope = rememberCoroutineScope()
     
     val isNotificationEnabled by notificationPrefs.isNotificationEnabled.collectAsState()
     val notificationHour by notificationPrefs.notificationHour.collectAsState()
@@ -57,7 +59,9 @@ fun NotificationSettingsSection() {
         notificationPrefs.setPermissionRequested()
         if (isGranted) {
             notificationPrefs.setNotificationEnabled(true)
-            notificationManager.scheduleDaily(notificationHour, notificationMinute)
+            coroutineScope.launch {
+                notificationManager.scheduleDailyNotification(notificationHour, notificationMinute)
+            }
         } else {
             showPermissionDialog = true
         }
@@ -153,7 +157,9 @@ fun NotificationSettingsSection() {
                                 )) {
                                     PackageManager.PERMISSION_GRANTED -> {
                                         notificationPrefs.setNotificationEnabled(true)
-                                        notificationManager.scheduleDaily(notificationHour, notificationMinute)
+                                        coroutineScope.launch {
+                                            notificationManager.scheduleDailyNotification(notificationHour, notificationMinute)
+                                        }
                                     }
                                     else -> {
                                         permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -161,11 +167,15 @@ fun NotificationSettingsSection() {
                                 }
                             } else {
                                 notificationPrefs.setNotificationEnabled(true)
-                                notificationManager.scheduleDaily(notificationHour, notificationMinute)
+                                coroutineScope.launch {
+                                    notificationManager.scheduleDailyNotification(notificationHour, notificationMinute)
+                                }
                             }
                         } else {
                             notificationPrefs.setNotificationEnabled(false)
-                            notificationManager.cancelDaily()
+                            coroutineScope.launch {
+                                notificationManager.cancelDailyNotification()
+                            }
                         }
                     }
                 )
@@ -186,8 +196,10 @@ fun NotificationSettingsSection() {
                                 context,
                                 { _, hour, minute ->
                                     notificationPrefs.setNotificationTime(hour, minute)
-                                    notificationManager.cancelDaily()
-                                    notificationManager.scheduleDaily(hour, minute)
+                                    coroutineScope.launch {
+                                        notificationManager.cancelDailyNotification()
+                                        notificationManager.scheduleDailyNotification(hour, minute)
+                                    }
                                 },
                                 notificationHour,
                                 notificationMinute,
@@ -240,7 +252,12 @@ fun NotificationSettingsSection() {
                 
                 Button(
                     onClick = {
-                        notificationManager.showTestNotification()
+                        coroutineScope.launch {
+                            notificationManager.showNotification(
+                                "今日の一行を書きませんか？",
+                                "今日はどんな一日でしたか？日記を書いて記録しましょう。"
+                            )
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
