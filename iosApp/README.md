@@ -84,20 +84,26 @@ iosApp/
    $(SRCROOT)/../../shared/build/bin/iosSimulatorArm64/debugFramework
    ```
 
-### 4. ビルドスクリプトの追加（オプション）
+### 4. ビルドスクリプトの追加（推奨）
 
 Xcode ビルド時に自動で Shared フレームワークをビルドするには：
 
 1. `Build Phases` タブを開く
 2. `+` > `New Run Script Phase` をクリック
-3. 以下のスクリプトを追加：
+3. Run Script の名前を「Build Shared Framework」に変更（オプション）
+4. 以下のスクリプトを追加：
 
 ```bash
-cd "$SRCROOT/../../"
-./gradlew :shared:embedAndSignAppleFrameworkForXcode
+cd "$SRCROOT/.."
+./build.sh
 ```
 
-4. スクリプトフェーズを `Compile Sources` の前に移動
+5. スクリプトフェーズを `Compile Sources` の前に移動
+
+**ビルドスクリプトの機能**:
+- SDK（シミュレータ/実機）に応じて適切なGradleタスクを自動選択
+- シミュレータ: `linkDebugFrameworkIosSimulatorArm64`
+- 実機: `linkReleaseFrameworkIosArm64`
 
 ### 5. アプリの実行
 
