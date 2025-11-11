@@ -44,5 +44,7 @@
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>日記の記入をリマインドする通知を送信するために使用します。</string>
 </dict>
 </plist>

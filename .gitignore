@@ -9,3 +9,11 @@
 .cxx
 local.properties
 .kotlin/
+
+# iOS
+iosApp/*.xcodeproj
+iosApp/*.xcworkspace
+iosApp/DerivedData/
+iosApp/**/xcuserdata/
+iosApp/**/*.xcuserstate
+iosApp/.swiftpm/

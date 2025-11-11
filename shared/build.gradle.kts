@@ -23,16 +23,32 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
+
+            // 依存関係をフレームワークに含める
+            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+            export(libs.kotlinx.datetime)
+            export(libs.koin.core)
+
+            // リリースビルドの最適化
+            if (buildType == org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType.RELEASE) {
+                // リリースビルドではデバッグシンボルを除去して最適化
+                freeCompilerArgs = freeCompilerArgs + listOf(
+                    "-Xdisable-phases=VerifyBitcode"
+                )
+            }
         }
     }
 
     sourceSets {
         commonMain.dependencies {
-            // Kotlin Coroutines
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+            // Kotlin Coroutines (API - iOSフレームワークにexport)
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
-            // kotlinx-datetime (Multiplatform date/time library)
-            implementation(libs.kotlinx.datetime)
+            // kotlinx-datetime (API - iOSフレームワークにexport)
+            api(libs.kotlinx.datetime)
+
+            // Koin for Dependency Injection (API - iOSフレームワークにexport)
+            api(libs.koin.core)
 
             // kotlinx-serialization (Multiplatform serialization)
             implementation(libs.kotlinx.serialization.json)
@@ -49,8 +65,7 @@ kotlin {
             // Lifecycle ViewModel (Compose Multiplatform)
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
 
-            // Koin for Dependency Injection (Multiplatform)
-            implementation(libs.koin.core)
+            // Koin (Compose統合 - implementation)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
 
