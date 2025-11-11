@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # OneLine - Architecture Overview
 
-A Japanese diary application built with Kotlin and Jetpack Compose that supports both local-only and Git-based cloud synchronization.
+A Japanese diary application built with Kotlin Multiplatform (KMP) and Compose Multiplatform (CMP) that supports both Android and iOS platforms, with local-only and Git-based cloud synchronization.
 
 ## アプリの目的
 
@@ -26,59 +26,121 @@ OneLineは、手軽に日記を書くことを目的とした日記アプリで�
 - 他の日記サービスと違い、データを完全に自分で管理できる（端末内またはGitリポジトリに保存）
 - データはサービスに預けず、完全にプライベートに保管できる
 
-## Package Structure
+## Module Structure
+
+### KMP/CMP アーキテクチャ
 
 ```
-net.chasmine.oneline/
-├── data/                      # Data layer
-│   ├── git/                   # Git repository implementation (JGit-based)
-│   ├── local/                 # Local filesystem implementation
-│   ├── model/                 # Data models (DiaryEntry)
-│   ├── preferences/           # Settings management (DataStore)
-│   └── repository/            # Repository abstraction layer (RepositoryManager)
-├── di/                        # Dependency injection (minimal - mostly manual DI)
-├── ui/                        # UI layer
-│   ├── screens/               # Screen-level Compose functions
-│   ├── components/            # Reusable UI components
-│   ├── viewmodels/            # MVVM ViewModels (AndroidViewModel-based)
-│   ├── theme/                 # Material 3 theming
-│   └── MainActivity.kt        # Navigation host & entry point
-├── util/                      # Utilities
-│   ├── NotificationManager    # Alarm-based notification scheduling
-│   ├── NotificationReceiver   # BroadcastReceiver for alarms
-│   ├── DateUtils              # Date formatting utilities
-│   └── NotificationInitializer # Permission & notification setup
-└── widget/                    # Glance app widgets
-    ├── DiaryWidget.kt         # Widget implementation
-    └── popup/                 # Widget interaction activities
+OneLine/
+├── shared/                           # KMP 共通モジュール
+│   ├── src/
+│   │   ├── commonMain/kotlin/        # 共通コード（Android/iOS 共通）
+│   │   │   ├── data/
+│   │   │   │   ├── model/            # DiaryEntry 等のデータモデル
+│   │   │   │   ├── preferences/      # expect: SettingsStorage
+│   │   │   │   ├── repository/       # expect: RepositoryFactory
+│   │   │   │   └── storage/          # expect: FileStorage
+│   │   │   ├── di/
+│   │   │   │   └── ViewModelModule.kt # 共通 ViewModel の DI 定義
+│   │   │   ├── ui/
+│   │   │   │   ├── screens/          # Compose UI 画面
+│   │   │   │   ├── components/       # 再利用可能な UI コンポーネント
+│   │   │   │   ├── viewmodels/       # ViewModel（androidx.lifecycle）
+│   │   │   │   └── theme/            # Material 3 テーマ
+│   │   │   └── util/
+│   │   │       ├── DiaryStatistics.kt # 統計計算ユーティリティ
+│   │   │       └── NotificationManager # expect: 通知管理
+│   │   ├── androidMain/kotlin/       # Android 固有実装
+│   │   │   ├── data/
+│   │   │   │   ├── preferences/      # actual: SettingsStorage (DataStore)
+│   │   │   │   ├── repository/       # actual: RepositoryFactory (JGit)
+│   │   │   │   └── storage/          # actual: FileStorage (Context.filesDir)
+│   │   │   ├── di/
+│   │   │   │   └── AndroidAppModule.kt # Android 固有 DI
+│   │   │   └── util/
+│   │   │       └── NotificationManager # actual: AlarmManager ベース
+│   │   ├── iosMain/kotlin/           # iOS 固有実装
+│   │   │   ├── data/
+│   │   │   │   ├── preferences/      # actual: SettingsStorage (UserDefaults)
+│   │   │   │   ├── repository/       # actual: RepositoryFactory
+│   │   │   │   └── storage/          # actual: FileStorage (NSFileManager)
+│   │   │   ├── di/
+│   │   │   │   └── IosAppModule.kt   # iOS 固有 DI
+│   │   │   ├── KoinInitializer.kt    # iOS 用 Koin 初期化
+│   │   │   ├── MainViewController.kt # iOS Compose エントリーポイント
+│   │   │   └── util/
+│   │   │       └── NotificationManager # actual: UNUserNotificationCenter
+│   │   └── commonTest/kotlin/        # 共通テスト
+│   │       ├── data/model/
+│   │       │   └── DiaryEntryTest.kt
+│   │       └── util/
+│   │           └── DiaryStatisticsTest.kt
+│   └── build.gradle.kts              # KMP ビルド設定
+├── androidApp/                       # Android アプリモジュール
+│   ├── src/main/
+│   │   ├── java/net/chasmine/oneline/
+│   │   │   ├── OneLineApplication.kt # Koin 初期化
+│   │   │   ├── MainActivity.kt       # Compose エントリーポイント
+│   │   │   ├── util/
+│   │   │   │   ├── NotificationReceiver.kt
+│   │   │   │   └── NotificationInitializer.kt
+│   │   │   └── widget/               # Android 専用ウィジェット
+│   │   └── AndroidManifest.xml
+│   └── build.gradle.kts
+└── iosApp/                           # iOS アプリモジュール
+    ├── iosApp/
+    │   ├── iOSApp.swift              # SwiftUI エントリーポイント
+    │   ├── ContentView.swift         # Compose ブリッジ
+    │   └── Info.plist
+    ├── build.sh                      # iOS フレームワークビルドスクリプト
+    └── README.md
 ```
 
 ## Architectural Patterns
 
-### 1. **MVVM (Model-View-ViewModel)**
+### 1. **MVVM (Model-View-ViewModel) - KMP 対応**
 - **ViewModels**: `DiaryListViewModel`, `DiaryEditViewModel`, `SettingViewModel`
-- Extends `AndroidViewModel` (not HILT, manual singleton instantiation)
+- Extends `ViewModel` from `androidx.lifecycle`（KMP 対応）
 - Uses `StateFlow<UiState>` for UI state management
-- All ViewModels access repositories through `RepositoryManager`
+- All ViewModels access repositories through `RepositoryFactory`（expect/actual パターン）
+- **DI**: Koin を使用（Hilt から移行）
 
 **Key Files**:
-- `/app/src/main/java/net/chasmine/oneline/ui/viewmodels/*.kt`
+- `shared/src/commonMain/kotlin/ui/viewmodels/*.kt`（共通 ViewModel）
+- `shared/src/commonMain/kotlin/di/ViewModelModule.kt`（ViewModel の DI 定義）
 
-### 2. **Repository Pattern with Strategy**
-- **RepositoryManager**: Central abstraction that switches between implementations at runtime
-  - Routes operations to either `LocalRepository` or `GitRepository` based on settings
-  - Single source of truth for data operations
-  - Handles mode migration (local ↔ git)
+### 2. **Repository Pattern with expect/actual**
+- **RepositoryFactory**: プラットフォーム固有のリポジトリ生成（expect/actual パターン）
+  - Android: JGit ベースの GitRepository
+  - iOS: Git 機能は未実装（将来的に libgit2 等を使用予定）
+  - ローカルモード/Git モードの切り替えをサポート
+  - データの保存/読み込みを抽象化
 
-**Key Concept**: Dual-mode architecture where users can choose storage backend:
+**Key Concept**: expect/actual パターンでプラットフォーム固有実装を抽象化:
 ```kotlin
-// RepositoryManager decides which backend to use
-suspend fun saveEntry(entry: DiaryEntry): Boolean {
-    val isLocalOnly = settingsManager.isLocalOnlyMode.first()
-    return if (isLocalOnly) {
-        localRepository.saveEntry(entry)
-    } else {
-        gitRepository.saveEntry(entry).isSuccess
+// commonMain - expect
+expect class RepositoryFactory {
+    suspend fun getEntries(): Flow<List<DiaryEntry>>
+    suspend fun saveEntry(entry: DiaryEntry): Result<Boolean>
+
+    companion object {
+        fun create(): RepositoryFactory
+    }
+}
+
+// androidMain - actual (JGit 統合)
+actual class RepositoryFactory(private val context: Context) {
+    private val settingsManager = SettingsManager.getInstance(context)
+
+    actual suspend fun getEntries(): Flow<List<DiaryEntry>> {
+        // ローカル/Git モードに応じて適切なリポジトリから取得
+    }
+}
+
+// iosMain - actual (ローカルのみ)
+actual class RepositoryFactory {
+    actual suspend fun getEntries(): Flow<List<DiaryEntry>> {
+        // iOS 固有の実装
     }
 }
 ```
