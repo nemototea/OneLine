@@ -126,10 +126,10 @@ class DiaryEditViewModel(
                         // 削除成功後に同期を試行
                         val syncSuccess = repositoryFactory.syncRepository()
                         if (syncSuccess) {
-                            _saveStatus.value = SaveStatus.Success
+                            _saveStatus.value = SaveStatus.DeleteSuccess
                         } else {
                             // 同期に失敗しても削除は成功
-                            _saveStatus.value = SaveStatus.Success
+                            _saveStatus.value = SaveStatus.DeleteSuccess
                         }
                     } else {
                         _saveStatus.value = SaveStatus.Error("日記の削除に失敗しました")
@@ -155,6 +155,7 @@ class DiaryEditViewModel(
         object Idle : SaveStatus()
         object Saving : SaveStatus()
         object Success : SaveStatus()
+        object DeleteSuccess : SaveStatus()
         data class Error(val message: String) : SaveStatus()
     }
 }

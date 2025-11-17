@@ -32,6 +32,7 @@ fun DiaryEditScreenImpl(
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var showSuccessAnimation by remember { mutableStateOf(false) }
+    var isDeleteSuccess by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = date) {
         viewModel.loadEntry(date)
@@ -41,6 +42,11 @@ fun DiaryEditScreenImpl(
         when (saveStatus) {
             is DiaryEditViewModel.SaveStatus.Success -> {
                 showSuccessAnimation = true
+                isDeleteSuccess = false
+            }
+            is DiaryEditViewModel.SaveStatus.DeleteSuccess -> {
+                showSuccessAnimation = true
+                isDeleteSuccess = true
             }
             is DiaryEditViewModel.SaveStatus.Error -> {
                 errorMessage = (saveStatus as DiaryEditViewModel.SaveStatus.Error).message
@@ -230,7 +236,7 @@ fun DiaryEditScreenImpl(
 
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "保存しました！",
+                        text = if (isDeleteSuccess) "削除しました！" else "保存しました！",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
