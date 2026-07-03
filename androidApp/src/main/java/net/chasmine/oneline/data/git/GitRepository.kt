@@ -47,6 +47,43 @@ class GitRepository private constructor(private val context: Context) {
     }
 
     /**
+     * ログ出力用にURLから認証情報（user:token@）を除去する
+     * ユーザーがトークン埋め込みURLを貼り付けた場合にログへ漏れるのを防ぐ
+     */
+    private fun sanitizeUrlForLog(url: String?): String =
+        url?.replace(Regex("//[^/@]+@"), "//") ?: "null"
+
+    /**
+     * リポジトリ削除前に日記ファイル(YYYY-MM-DD.md)をローカル退避する
+     * リモートURL変更時などの deleteRecursively で未プッシュの日記が失われるのを防ぐ
+     */
+    private fun backupDiaryFilesBeforeDelete(reason: String) {
+        try {
+            val dir = repoDirectory ?: return
+            if (!dir.exists()) return
+            val mdFiles = dir.listFiles { file ->
+                file.isFile && file.name.matches(Regex("\\d{4}-\\d{2}-\\d{2}\\.md"))
+            } ?: return
+            if (mdFiles.isEmpty()) return
+
+            val backupRoot = File(context.filesDir, "OneLine_repository_backup")
+            val backupDir = File(backupRoot, System.currentTimeMillis().toString())
+            backupDir.mkdirs()
+            mdFiles.forEach { it.copyTo(File(backupDir, it.name), overwrite = true) }
+            Log.i(TAG, "Backed up ${mdFiles.size} diary files before deletion ($reason) to ${backupDir.absolutePath}")
+
+            // 古い退避データは直近5世代のみ保持
+            backupRoot.listFiles()
+                ?.filter { it.isDirectory }
+                ?.sortedByDescending { it.name.toLongOrNull() ?: 0L }
+                ?.drop(5)
+                ?.forEach { it.deleteRecursively() }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to back up diary files before deletion", e)
+        }
+    }
+
+    /**
      * リポジトリの初期化
      * 初回：クローン
      * 2回目以降：オープン
@@ -70,7 +107,7 @@ class GitRepository private constructor(private val context: Context) {
 
             Log.d(TAG, "Repository directory: ${repoDirectory!!.absolutePath}")
             Log.d(TAG, "Repository directory exists: ${repoDirectory!!.exists()}")
-            Log.d(TAG, "Target remote URL: $remoteUrl")
+            Log.d(TAG, "Target remote URL: ${sanitizeUrlForLog(remoteUrl)}")
 
             // 既存のリポジトリがある場合、リモートURLを確認
             if (repoDirectory!!.exists() && File(repoDirectory, ".git").exists()) {
@@ -79,31 +116,34 @@ class GitRepository private constructor(private val context: Context) {
                     val existingRemoteUrl = existingGit.repository.config.getString("remote", "origin", "url")
                     existingGit.close()
                     
-                    Log.d(TAG, "Existing remote URL: $existingRemoteUrl")
-                    
+                    Log.d(TAG, "Existing remote URL: ${sanitizeUrlForLog(existingRemoteUrl)}")
+
                     if (existingRemoteUrl != null && existingRemoteUrl != remoteUrl) {
                         Log.w(TAG, "Remote URL mismatch detected!")
-                        Log.w(TAG, "Existing: $existingRemoteUrl")
-                        Log.w(TAG, "New: $remoteUrl")
+                        Log.w(TAG, "Existing: ${sanitizeUrlForLog(existingRemoteUrl)}")
+                        Log.w(TAG, "New: ${sanitizeUrlForLog(remoteUrl)}")
                         Log.w(TAG, "Removing existing repository for safety")
-                        
-                        // 既存のリポジトリを完全に削除
+
+                        // 未プッシュの日記が消えないよう退避してから削除
+                        backupDiaryFilesBeforeDelete("remote URL mismatch")
                         repoDirectory!!.deleteRecursively()
                         Log.d(TAG, "Existing repository removed successfully")
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "Failed to check existing repository, removing for safety", e)
+                    backupDiaryFilesBeforeDelete("unreadable repository")
                     repoDirectory!!.deleteRecursively()
                 }
             }
 
             if (!repoDirectory!!.exists() || !File(repoDirectory, ".git").exists()) {
                 // .gitディレクトリがない場合は新規クローン
-                Log.d(TAG, "Cloning repository from $remoteUrl")
+                Log.d(TAG, "Cloning repository from ${sanitizeUrlForLog(remoteUrl)}")
 
                 // 既存のディレクトリがあれば削除
                 if (repoDirectory!!.exists()) {
                     Log.w(TAG, "Removing existing repository directory for safety")
+                    backupDiaryFilesBeforeDelete("directory without .git")
                     repoDirectory!!.deleteRecursively()
                 }
                 repoDirectory!!.mkdirs()
@@ -121,12 +161,13 @@ class GitRepository private constructor(private val context: Context) {
                 val existingGit = Git.open(repoDirectory)
                 val existingRemoteUrl = existingGit.repository.config.getString("remote", "origin", "url")
                 
-                Log.d(TAG, "Existing remote URL: $existingRemoteUrl")
-                Log.d(TAG, "New remote URL: $remoteUrl")
-                
+                Log.d(TAG, "Existing remote URL: ${sanitizeUrlForLog(existingRemoteUrl)}")
+                Log.d(TAG, "New remote URL: ${sanitizeUrlForLog(remoteUrl)}")
+
                 if (existingRemoteUrl != remoteUrl) {
                     Log.w(TAG, "Remote URL mismatch! Removing existing repository for safety")
                     existingGit.close()
+                    backupDiaryFilesBeforeDelete("remote URL mismatch on open")
                     repoDirectory!!.deleteRecursively()
                     repoDirectory!!.mkdirs()
                     
@@ -415,7 +456,33 @@ class GitRepository private constructor(private val context: Context) {
             val repo = git!!.repository
             if (repo.repositoryState.toString().contains("MERGING")) {
                 Log.w(TAG, "Repository in MERGING state, resetting hard")
+
+                // reset --hard で未コミットの日記内容が失われないよう、先に退避する
+                val status = git!!.status().call()
+                val dirtyDiaryContents = (status.modified + status.untracked + status.conflicting)
+                    .filter { it.endsWith(".md") }
+                    .mapNotNull { name ->
+                        val file = File(repoDirectory, name)
+                        if (file.exists()) name to file.readText() else null
+                    }
+                    .toMap()
+
                 git!!.reset().setMode(org.eclipse.jgit.api.ResetCommand.ResetType.HARD).call()
+
+                // 退避した内容を復元してコミット（競合マーカーは後段の処理で除去される）
+                var restoredAny = false
+                dirtyDiaryContents.forEach { (name, content) ->
+                    val file = File(repoDirectory, name)
+                    if (!file.exists() || file.readText() != content) {
+                        file.writeText(content)
+                        git!!.add().addFilepattern(name).call()
+                        restoredAny = true
+                    }
+                }
+                if (restoredAny) {
+                    git!!.commit().setMessage("Recover local diary changes after merge abort").call()
+                    Log.i(TAG, "Recovered ${dirtyDiaryContents.size} uncommitted diary files after merge abort")
+                }
             }
 
             // ours戦略でpull（常にローカルを優先）
@@ -424,7 +491,11 @@ class GitRepository private constructor(private val context: Context) {
                 .setStrategy(org.eclipse.jgit.merge.MergeStrategy.OURS)
                 .call()
 
-            // 競合マーカーが残っている.mdファイルを修正
+            // 競合マーカーが残っている.mdファイルを修復する。
+            // 以前はファイルを空にしていたが、それでは日記の内容ごと失われるため、
+            // マーカー行のみ除去して両バージョンの本文を保持する。
+            // 「=======」単独は日記本文（Markdownの見出し下線等）の可能性があるため、
+            // 開始・終了マーカーが揃っている場合のみ競合とみなす。
             val repoDir = repoDirectory
             if (repoDir != null && repoDir.exists()) {
                 val mdFiles = repoDir.listFiles { file ->
@@ -432,9 +503,19 @@ class GitRepository private constructor(private val context: Context) {
                 }
                 mdFiles?.forEach { file ->
                     val content = file.readText()
-                    if (content.contains("<<<<<<<") || content.contains("=======" ) || content.contains(">>>>>>>")) {
-                        file.writeText("")
-                        git?.add()?.addFilepattern(file.name)?.call()
+                    if (content.contains("<<<<<<<") && content.contains(">>>>>>>")) {
+                        val cleaned = content.lines()
+                            .filterNot { line ->
+                                line.startsWith("<<<<<<<") ||
+                                    line.startsWith(">>>>>>>") ||
+                                    line == "======="
+                            }
+                            .joinToString("\n")
+                        if (cleaned != content) {
+                            file.writeText(cleaned)
+                            git?.add()?.addFilepattern(file.name)?.call()
+                            Log.i(TAG, "Removed conflict markers from ${file.name} (content preserved)")
+                        }
                     }
                 }
             }
@@ -498,7 +579,7 @@ class GitRepository private constructor(private val context: Context) {
      */
     suspend fun validateRepositorySafely(remoteUrl: String, username: String, password: String): ValidationResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Starting safe repository validation for: $remoteUrl")
+            Log.d(TAG, "Starting safe repository validation for: ${sanitizeUrlForLog(remoteUrl)}")
             
             // 認証情報を設定
             val credentials = UsernamePasswordCredentialsProvider(username, password)
@@ -614,7 +695,7 @@ class GitRepository private constructor(private val context: Context) {
             val repoOwner = extractRepositoryOwner(remoteUrl)
             
             if (repoOwner == null) {
-                Log.w(TAG, "Could not extract repository owner from URL: $remoteUrl")
+                Log.w(TAG, "Could not extract repository owner from URL: ${sanitizeUrlForLog(remoteUrl)}")
                 return@withContext false
             }
             
@@ -656,7 +737,7 @@ class GitRepository private constructor(private val context: Context) {
                 }
             }
             
-            Log.w(TAG, "Could not parse repository owner from URL: $remoteUrl")
+            Log.w(TAG, "Could not parse repository owner from URL: ${sanitizeUrlForLog(remoteUrl)}")
             null
             
         } catch (e: Exception) {
@@ -727,7 +808,7 @@ class GitRepository private constructor(private val context: Context) {
         migrationOption: MigrationOption
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Starting repository migration to: $newRemoteUrl")
+            Log.d(TAG, "Starting repository migration to: ${sanitizeUrlForLog(newRemoteUrl)}")
             
             // 1. 現在のローカルデータを取得
             val localDiaryFiles = getLocalDiaryFiles()

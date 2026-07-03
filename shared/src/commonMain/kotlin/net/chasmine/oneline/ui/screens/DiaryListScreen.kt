@@ -3,10 +3,13 @@ package net.chasmine.oneline.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -17,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import net.chasmine.oneline.ui.components.DiaryCard
 import net.chasmine.oneline.ui.components.LottieLoadingIndicator
 import net.chasmine.oneline.ui.viewmodels.DiaryListViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +33,7 @@ fun DiaryListScreenImpl(
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
     val hasMoreData by viewModel.hasMoreData.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
-    val scope = rememberCoroutineScope()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val listState = rememberLazyListState()
     var showSyncStatusMessage by remember { mutableStateOf(false) }
     var syncStatusMessage by remember { mutableStateOf("") }
@@ -40,12 +42,9 @@ fun DiaryListScreenImpl(
         viewModel.loadEntries()
     }
 
+    // 同期の成功は一覧への反映で伝わるため、メッセージは失敗時のみ表示する
     LaunchedEffect(syncStatus) {
         when (syncStatus) {
-            is DiaryListViewModel.SyncStatus.Success -> {
-                syncStatusMessage = "同期が完了しました"
-                showSyncStatusMessage = true
-            }
             is DiaryListViewModel.SyncStatus.Error -> {
                 syncStatusMessage = "同期に失敗しました: ${(syncStatus as DiaryListViewModel.SyncStatus.Error).message}"
                 showSyncStatusMessage = true
@@ -81,18 +80,22 @@ fun DiaryListScreenImpl(
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
                     IconButton(
-                        onClick = {
-                            scope.launch {
-                                viewModel.syncRepository()
-                            }
-                        },
+                        onClick = { viewModel.refresh() },
                         enabled = syncStatus !is DiaryListViewModel.SyncStatus.Syncing
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Sync,
-                            contentDescription = "同期",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                        if (syncStatus is DiaryListViewModel.SyncStatus.Syncing) {
+                            // 同期中はアイコンを小さなスピナーに置き換えて控えめに伝える
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Outlined.Sync,
+                                contentDescription = "同期",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
 
                     IconButton(onClick = onNavigateToSettings) {
@@ -106,7 +109,9 @@ fun DiaryListScreenImpl(
             )
         }
     ) { paddingValues ->
-        Box(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -120,6 +125,8 @@ fun DiaryListScreenImpl(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        // 空状態でもpull-to-refreshが使えるようスクロール可能にする
+                        .verticalScroll(rememberScrollState())
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -177,36 +184,7 @@ fun DiaryListScreenImpl(
                 }
             }
 
-            // 同期中の表示
-            if (syncStatus is DiaryListViewModel.SyncStatus.Syncing) {
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp)
-                        .fillMaxWidth()
-                        .padding(horizontal = 32.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        LottieLoadingIndicator(
-                            size = 40.dp
-                        )
-                        Text(
-                            text = "同期中...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-            }
-
-            // 同期結果の表示
+            // 同期失敗の表示（成功時は一覧への反映のみで通知しない）
             if (showSyncStatusMessage) {
                 LaunchedEffect(key1 = showSyncStatusMessage) {
                     // 3秒後に自動的に非表示にする
@@ -221,10 +199,7 @@ fun DiaryListScreenImpl(
                         .fillMaxWidth()
                         .padding(horizontal = 32.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (syncStatus is DiaryListViewModel.SyncStatus.Success)
-                            MaterialTheme.colorScheme.secondaryContainer
-                        else
-                            MaterialTheme.colorScheme.errorContainer
+                        containerColor = MaterialTheme.colorScheme.errorContainer
                     )
                 ) {
                     Row(
@@ -235,10 +210,7 @@ fun DiaryListScreenImpl(
                         Text(
                             text = syncStatusMessage,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (syncStatus is DiaryListViewModel.SyncStatus.Success)
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            else
-                                MaterialTheme.colorScheme.onErrorContainer
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }

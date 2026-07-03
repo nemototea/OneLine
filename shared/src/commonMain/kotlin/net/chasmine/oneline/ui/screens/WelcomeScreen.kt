@@ -37,17 +37,34 @@ data class TutorialPage(
     val details: List<String>
 )
 
+/**
+ * オンボーディング画面
+ *
+ * 構成（issue #70）:
+ * 1. アプリ紹介（シンプルな日記）
+ * 2. アプリ紹介（カレンダー）
+ * 3. リマインダー設定（その場で通知ON/OFF・時刻を設定）
+ * 4. 開始ページ（必ずローカルモードで開始し、Git連携は設定から案内。
+ *    CTAでそのまま今日の日記を書いてもらう）
+ *
+ * 通知の権限リクエストや時刻ピッカーはプラットフォーム固有のため、
+ * 呼び出し側（Androidラッパー等）からコールバックで注入する。
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalResourceApi::class)
 @Composable
 fun WelcomeScreenImpl(
-    onLocalModeSelected: () -> Unit,
-    onGitModeSelected: () -> Unit,
+    notificationEnabled: Boolean,
+    notificationHour: Int,
+    notificationMinute: Int,
+    onNotificationToggle: (Boolean) -> Unit,
+    onPickNotificationTime: () -> Unit,
+    onNotificationPageVisible: () -> Unit,
+    onStartFirstEntry: () -> Unit,
     settingsManager: SettingsManager
 ) {
     val scope = rememberCoroutineScope()
 
-    // チュートリアルページの定義
-    val tutorialPages = listOf(
+    val featurePages = listOf(
         TutorialPage(
             lottieFileName = "checklist_cubaan.json",
             title = "シンプルな日記",
@@ -67,40 +84,43 @@ fun WelcomeScreenImpl(
                 "記録した日が一目でわかる",
                 "タップして詳細を表示"
             )
-        ),
-        TutorialPage(
-            lottieFileName = "notifications.json",
-            title = "通知機能",
-            description = "書き忘れを防ぐリマインダー",
-            details = listOf(
-                "毎日決まった時間に通知",
-                "通知時間は自由に設定可能",
-                "継続的な記録をサポート"
-            )
         )
     )
 
-    val pagerState = rememberPagerState(pageCount = { tutorialPages.size + 1 }) // +1 for settings page
+    // 機能紹介2ページ + 通知設定 + 開始ページ
+    val pageCount = featurePages.size + 2
+    val notificationPageIndex = featurePages.size
+    val lastPageIndex = pageCount - 1
+
+    val pagerState = rememberPagerState(pageCount = { pageCount })
+
+    // スイッチはデフォルトONのため、通知ページが表示された時点で
+    // 権限の確認・リクエストを行う（初回表示時のみ）
+    var notificationPageSeen by remember { mutableStateOf(false) }
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == notificationPageIndex && !notificationPageSeen) {
+            notificationPageSeen = true
+            onNotificationPageVisible()
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // ページコンテンツ
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f)
         ) { page ->
-            if (page < tutorialPages.size) {
-                // チュートリアルページ
-                TutorialPageContent(tutorialPages[page])
-            } else {
-                // データ保存方法選択ページ
-                DataStorageSelectionPage(
-                    onLocalModeSelected = onLocalModeSelected,
-                    onGitModeSelected = onGitModeSelected,
-                    settingsManager = settingsManager,
-                    scope = scope
+            when {
+                page < featurePages.size -> TutorialPageContent(featurePages[page])
+                page == notificationPageIndex -> NotificationSetupPage(
+                    enabled = notificationEnabled,
+                    hour = notificationHour,
+                    minute = notificationMinute,
+                    onToggle = onNotificationToggle,
+                    onPickTime = onPickNotificationTime
                 )
+                else -> StartPage()
             }
         }
 
@@ -111,7 +131,7 @@ fun WelcomeScreenImpl(
                 .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            repeat(tutorialPages.size + 1) { index ->
+            repeat(pageCount) { index ->
                 Box(
                     modifier = Modifier
                         .size(8.dp)
@@ -124,47 +144,59 @@ fun WelcomeScreenImpl(
                             }
                         )
                 )
-                if (index < tutorialPages.size) {
+                if (index < pageCount - 1) {
                     Spacer(modifier = Modifier.width(8.dp))
                 }
             }
         }
 
         // ナビゲーションボタン
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // スキップボタン（最後のページでは非表示）
-            if (pagerState.currentPage < tutorialPages.size) {
+        if (pagerState.currentPage == lastPageIndex) {
+            // 最終ページ: ローカルモードで開始して最初の日記へ
+            Button(
+                onClick = {
+                    scope.launch {
+                        settingsManager.setLocalOnlyMode(true)
+                        onStartFirstEntry()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 24.dp)
+                    .height(52.dp)
+            ) {
+                Text(
+                    text = "今日の日記を書いてみる",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 TextButton(
                     onClick = {
                         scope.launch {
-                            pagerState.animateScrollToPage(tutorialPages.size)
+                            pagerState.animateScrollToPage(lastPageIndex)
                         }
                     }
                 ) {
                     Text("スキップ")
                 }
-            } else {
-                Spacer(modifier = Modifier.width(1.dp))
-            }
 
-            // 次へボタン（最後のページでは非表示）
-            if (pagerState.currentPage < tutorialPages.size) {
                 Button(
                     onClick = {
                         scope.launch {
-                            if (pagerState.currentPage < tutorialPages.size) {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
+                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
                     }
                 ) {
-                    Text(if (pagerState.currentPage == tutorialPages.size - 1) "設定へ" else "次へ")
+                    Text("次へ")
                 }
             }
         }
@@ -181,30 +213,10 @@ private fun TutorialPageContent(page: TutorialPage) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Lottieアニメーション
-        val composition = rememberLottieComposition {
-            LottieCompositionSpec.JsonString(
-                Res.readBytes("files/${page.lottieFileName}").decodeToString()
-            )
-        }
-
-        val progress = animateLottieCompositionAsState(
-            composition = composition.value,
-            iterations = Compottie.IterateForever
-        )
-
-        Image(
-            painter = rememberLottiePainter(
-                composition = composition.value,
-                progress = { progress.value }
-            ),
-            contentDescription = null,
-            modifier = Modifier.size(200.dp)
-        )
+        LottieAnimation(fileName = page.lottieFileName, size = 200)
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // タイトル
         Text(
             text = page.title,
             style = MaterialTheme.typography.headlineMedium,
@@ -214,7 +226,6 @@ private fun TutorialPageContent(page: TutorialPage) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 説明
         Text(
             text = page.description,
             style = MaterialTheme.typography.titleMedium,
@@ -224,7 +235,6 @@ private fun TutorialPageContent(page: TutorialPage) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 詳細リスト
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -249,129 +259,96 @@ private fun TutorialPageContent(page: TutorialPage) {
     }
 }
 
+/**
+ * 通知（リマインダー）設定ページ
+ * オンボーディング中にその場でON/OFFと時刻を設定できる
+ */
 @Composable
-private fun DataStorageSelectionPage(
-    onLocalModeSelected: () -> Unit,
-    onGitModeSelected: () -> Unit,
-    settingsManager: SettingsManager,
-    scope: kotlinx.coroutines.CoroutineScope
+private fun NotificationSetupPage(
+    enabled: Boolean,
+    hour: Int,
+    minute: Int,
+    onToggle: (Boolean) -> Unit,
+    onPickTime: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // アプリロゴ・タイトル
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "OneLine へようこそ",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = "データの保存方法を選択してください",
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        LottieAnimation(fileName = "notifications.json", size = 160)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // データ保存方法の選択
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        Text(
+            text = "書き忘れを防ぐ",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "毎日決まった時間にリマインダーを受け取って、日記の習慣をつくりましょう",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         ) {
-            // ローカル保存オプション
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        scope.launch {
-                            settingsManager.setLocalOnlyMode(true)
-                            onLocalModeSelected()
-                        }
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Phone,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-
-                        Column {
-                            Text(
-                                text = "ローカル保存のみ（推奨）",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "• 設定不要ですぐ使える\n• 完全プライベート",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                    Text(
+                        text = "毎日リマインド",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Switch(
+                        checked = enabled,
+                        onCheckedChange = onToggle
+                    )
                 }
-            }
 
-            // Git連携オプション
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onGitModeSelected() },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                if (enabled) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onPickTime() },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Cloud,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(28.dp)
+                        Text(
+                            text = "通知時刻",
+                            style = MaterialTheme.typography.titleMedium
                         )
-
-                        Column {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                            shape = MaterialTheme.shapes.small
+                        ) {
                             Text(
-                                text = "Git連携",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "• 自動バックアップ\n• 複数端末で同期",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = formatTime(hour, minute),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                             )
                         }
                     }
@@ -379,9 +356,54 @@ private fun DataStorageSelectionPage(
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "あとから設定画面でいつでも変更できます",
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+/**
+ * 開始ページ
+ * 必ずローカルモードで開始する。Git連携は設定画面から可能なことを案内する
+ */
+@Composable
+private fun StartPage() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        LottieAnimation(fileName = "celebrations_begin.json", size = 180)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "準備ができました！",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 補足説明
+        Text(
+            text = "日記はまず端末の中に保存されます。\n設定不要で、完全にプライベートです。",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Git連携の案内（オンボーディングでは選択させない）
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -389,27 +411,58 @@ private fun DataStorageSelectionPage(
             )
         ) {
             Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "💡",
-                    style = MaterialTheme.typography.titleMedium
+                Icon(
+                    imageVector = Icons.Default.Cloud,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "初めての方は「ローカル保存のみ」がおすすめ",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "クラウド同期もできます",
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "設定不要ですぐに日記を書き始められます。後からGit連携に変更することも可能です。",
-                        style = MaterialTheme.typography.bodySmall
+                        text = "Gitリポジトリと連携すれば、自動バックアップや複数端末での同期が可能です。「設定 > データ保存」からいつでも切り替えられます。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
     }
 }
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun LottieAnimation(fileName: String, size: Int) {
+    val composition = rememberLottieComposition {
+        LottieCompositionSpec.JsonString(
+            Res.readBytes("files/$fileName").decodeToString()
+        )
+    }
+
+    val progress = animateLottieCompositionAsState(
+        composition = composition.value,
+        iterations = Compottie.IterateForever
+    )
+
+    Image(
+        painter = rememberLottiePainter(
+            composition = composition.value,
+            progress = { progress.value }
+        ),
+        contentDescription = null,
+        modifier = Modifier.size(size.dp)
+    )
+}
+
+private fun formatTime(hour: Int, minute: Int): String =
+    "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"

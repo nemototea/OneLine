@@ -10,6 +10,11 @@
 local.properties
 .kotlin/
 
+# AI/エディタの作業ファイル（公開リポジトリに含めない）
+.amazonq/
+.vscode/
+.claude/
+
 # iOS
 iosApp/*.xcodeproj
 iosApp/*.xcworkspace

@@ -21,6 +21,9 @@ fun DiaryForm(
     onDelete: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    // 空の日記は保存できない（保存しても一覧に表示されず混乱のもとになる）
+    val canSave = entry.content.isNotBlank()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -29,6 +32,8 @@ fun DiaryForm(
                         text = if (isNew) "新しい日記" else "日記を編集"
                     )
                 },
+                // 他のメイン画面と同様にステータスバー分の余白を除き、ヘッダーの高さを揃える
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -48,7 +53,7 @@ fun DiaryForm(
                         }
                     }
 
-                    IconButton(onClick = onSave) {
+                    IconButton(onClick = onSave, enabled = canSave) {
                         Icon(
                             imageVector = Icons.Default.Save,
                             contentDescription = "保存"
@@ -87,9 +92,10 @@ fun DiaryForm(
 
             Button(
                 onClick = onSave,
+                enabled = canSave,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("保存する")
+                Text(if (canSave) "保存する" else "今日の一行を書いてみましょう")
             }
         }
     }

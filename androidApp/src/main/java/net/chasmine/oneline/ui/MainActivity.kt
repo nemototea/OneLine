@@ -383,15 +383,12 @@ fun OneLineApp(
         ) {
         composable("welcome") {
             WelcomeScreen(
-                onLocalModeSelected = {
+                onStartFirstEntry = {
+                    // 一覧をバックスタックの起点にした上で、最初の日記の投稿画面を開く
                     navController.navigate("diary_list") {
                         popUpTo("welcome") { inclusive = true }
                     }
-                },
-                onGitModeSelected = {
-                    navController.navigate("git_settings?initialSetup=true") {
-                        popUpTo("welcome") { inclusive = true }
-                    }
+                    navController.navigate("diary_edit/new")
                 }
             )
         }

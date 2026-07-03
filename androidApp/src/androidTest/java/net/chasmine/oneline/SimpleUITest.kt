@@ -10,10 +10,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * シンプルなUIテスト
- * 
- * AIアシスタントが簡単に実行できる基本的なUIテストを提供します。
- * 複雑な設定や依存性は使用せず、純粋なUI動作テストに焦点を当てます。
+ * オンボーディング画面（WelcomeScreen）の基本UIテスト
+ *
+ * 構成（issue #70）:
+ * 1-2. 機能紹介ページ
+ * 3.   リマインダー設定ページ
+ * 4.   開始ページ（ローカルモードで開始し、最初の日記へ誘導）
  */
 @RunWith(AndroidJUnit4::class)
 class SimpleUITest {
@@ -22,211 +24,110 @@ class SimpleUITest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun welcomeScreen_displaysTitle() {
-        // Given
+    fun welcomeScreen_displaysFirstTutorialPage() {
         composeTestRule.setContent {
             OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { },
-                    onGitModeSelected = { }
-                )
+                WelcomeScreen(onStartFirstEntry = { })
             }
         }
 
-        // Then
         composeTestRule
-            .onNodeWithText("OneLine へようこそ")
+            .onNodeWithText("シンプルな日記")
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithText("スキップ")
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithText("次へ")
             .assertIsDisplayed()
     }
 
     @Test
-    fun welcomeScreen_displaysDescription() {
-        // Given
+    fun welcomeScreen_nextButtonAdvancesToCalendarPage() {
         composeTestRule.setContent {
             OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { },
-                    onGitModeSelected = { }
-                )
+                WelcomeScreen(onStartFirstEntry = { })
             }
         }
 
-        // Then
         composeTestRule
-            .onNodeWithText("毎日の想いを一行で記録する\nシンプルな日記アプリです")
+            .onNodeWithText("次へ")
+            .performClick()
+
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNodeWithText("カレンダー表示")
             .assertIsDisplayed()
     }
 
     @Test
-    fun welcomeScreen_displaysLocalModeOption() {
-        // Given
+    fun welcomeScreen_skipNavigatesToStartPage() {
         composeTestRule.setContent {
             OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { },
-                    onGitModeSelected = { }
-                )
+                WelcomeScreen(onStartFirstEntry = { })
             }
         }
 
-        // Then
         composeTestRule
-            .onNodeWithText("📱 ローカル保存のみ")
+            .onNodeWithText("スキップ")
+            .performClick()
+
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNodeWithText("準備ができました！")
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithText("今日の日記を書いてみる")
             .assertIsDisplayed()
             .assertHasClickAction()
     }
 
     @Test
-    fun welcomeScreen_displaysGitModeOption() {
-        // Given
+    fun welcomeScreen_startButtonTriggersCallback() {
+        var started = false
+
         composeTestRule.setContent {
             OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { },
-                    onGitModeSelected = { }
-                )
+                WelcomeScreen(onStartFirstEntry = { started = true })
             }
         }
 
-        // Then
         composeTestRule
-            .onNodeWithText("☁️ Git連携")
+            .onNodeWithText("スキップ")
+            .performClick()
+
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNodeWithText("今日の日記を書いてみる")
+            .performClick()
+
+        // CTAはローカルモード設定（suspend）後にコールバックを呼ぶため待機する
+        composeTestRule.waitUntil(timeoutMillis = 5_000) { started }
+    }
+
+    @Test
+    fun welcomeScreen_startPageShowsGitGuidance() {
+        composeTestRule.setContent {
+            OneLineTheme {
+                WelcomeScreen(onStartFirstEntry = { })
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText("スキップ")
+            .performClick()
+
+        composeTestRule.waitForIdle()
+
+        // Git連携はオンボーディングでは選択させず、設定から可能なことを案内する
+        composeTestRule
+            .onNodeWithText("クラウド同期もできます")
             .assertIsDisplayed()
-            .assertHasClickAction()
-    }
-
-    @Test
-    fun welcomeScreen_localModeClick_triggersCallback() {
-        // Given
-        var localModeClicked = false
-        
-        composeTestRule.setContent {
-            OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { localModeClicked = true },
-                    onGitModeSelected = { }
-                )
-            }
-        }
-
-        // When
-        composeTestRule
-            .onNodeWithText("📱 ローカル保存のみ")
-            .performClick()
-
-        // Wait for the callback to be processed
-        composeTestRule.waitForIdle()
-
-        // Then
-        assert(localModeClicked) { "ローカルモードのクリックが検出されること" }
-    }
-
-    @Test
-    fun welcomeScreen_gitModeClick_triggersCallback() {
-        // Given
-        var gitModeClicked = false
-        
-        composeTestRule.setContent {
-            OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { },
-                    onGitModeSelected = { gitModeClicked = true }
-                )
-            }
-        }
-
-        // When
-        composeTestRule
-            .onNodeWithText("☁️ Git連携")
-            .performClick()
-
-        // Wait for the callback to be processed
-        composeTestRule.waitForIdle()
-
-        // Then
-        assert(gitModeClicked) { "Gitモードのクリックが検出されること" }
-    }
-
-    @Test
-    fun welcomeScreen_scrollable() {
-        // Given
-        composeTestRule.setContent {
-            OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { },
-                    onGitModeSelected = { }
-                )
-            }
-        }
-
-        // When & Then
-        // スクロール可能であることを確認
-        composeTestRule
-            .onRoot()
-            .performTouchInput {
-                swipeUp()
-            }
-
-        // スクロール後も要素が表示されることを確認
-        composeTestRule
-            .onNodeWithText("💡 どちらを選べばいい？")
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun welcomeScreen_multipleClicks_handledCorrectly() {
-        // Given
-        var clickCount = 0
-        
-        composeTestRule.setContent {
-            OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { clickCount++ },
-                    onGitModeSelected = { }
-                )
-            }
-        }
-
-        // When
-        repeat(3) {
-            composeTestRule
-                .onNodeWithText("📱 ローカル保存のみ")
-                .performClick()
-            composeTestRule.waitForIdle()
-        }
-
-        // Then
-        assert(clickCount == 3) { "複数回のクリックが正しく処理されること" }
-    }
-
-    @Test
-    fun welcomeScreen_bothOptions_clickable() {
-        // Given
-        var localClicked = false
-        var gitClicked = false
-        
-        composeTestRule.setContent {
-            OneLineTheme {
-                WelcomeScreen(
-                    onLocalModeSelected = { localClicked = true },
-                    onGitModeSelected = { gitClicked = true }
-                )
-            }
-        }
-
-        // When
-        composeTestRule
-            .onNodeWithText("📱 ローカル保存のみ")
-            .performClick()
-        composeTestRule.waitForIdle()
-            
-        composeTestRule
-            .onNodeWithText("☁️ Git連携")
-            .performClick()
-        composeTestRule.waitForIdle()
-
-        // Then
-        assert(localClicked) { "ローカルモードがクリックされること" }
-        assert(gitClicked) { "Gitモードがクリックされること" }
     }
 }
