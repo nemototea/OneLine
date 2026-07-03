@@ -78,9 +78,10 @@ class NotificationInitializer(private val context: Context) {
             scheduleNotification()
             InitializationResult.ScheduledWithPermission
         } else {
-            // 権限が必要な場合
-            Log.d(TAG, "初回起動: 権限リクエストが必要")
-            InitializationResult.PermissionRequired
+            // 初回起動時の権限リクエストはオンボーディング（WelcomeScreen）の
+            // リマインダー設定ステップで行うため、ここでは何もしない
+            Log.d(TAG, "初回起動: 権限リクエストはオンボーディングで実施")
+            InitializationResult.NoAction
         }
     }
     
