@@ -29,6 +29,8 @@ fun DiaryForm(
                         text = if (isNew) "新しい日記" else "日記を編集"
                     )
                 },
+                // 他のメイン画面と同様にステータスバー分の余白を除き、ヘッダーの高さを揃える
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

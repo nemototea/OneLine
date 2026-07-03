@@ -3,12 +3,12 @@
     android:height="96dp"
     android:viewportWidth="48"
     android:viewportHeight="48">
-    <!-- 背景の円 -->
+    <!-- 背景の円（ライト/ダークテーマで自動切替） -->
     <path
-        android:fillColor="#2C2C44"
+        android:fillColor="@color/widget_background"
         android:pathData="M24,2a22,22 0 1,0 0,44a22,22 0 1,0 0,-44z" />
     <!-- 中央のプラスマーク -->
     <path
-        android:fillColor="@android:color/white"
+        android:fillColor="@color/widget_on_background"
         android:pathData="M32,25H25v7h-2v-7h-7v-2h7v-7h2v7h7v2z" />
 </vector>

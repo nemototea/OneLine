@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ウィジェット用の色（ダークテーマ）。DarkPrimary / DarkOnPrimary に合わせる -->
+    <color name="widget_background">#FF9F0A</color>
+    <color name="widget_on_background">#000000</color>
+</resources>
