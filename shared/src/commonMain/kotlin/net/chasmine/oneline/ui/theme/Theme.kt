@@ -1,9 +1,21 @@
 package net.chasmine.oneline.ui.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+
+// 柔らかい紙の角を思わせる、ひかえめな丸み
+val OneLineShapes = Shapes(
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(14.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(28.dp)
+)
 
 // プラットフォーム固有のダークテーマ判定
 @Composable
@@ -69,6 +81,7 @@ fun BaseOneLineTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = OneLineShapes,
         content = content
     )
 }

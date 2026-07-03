@@ -1,5 +1,6 @@
 package net.chasmine.oneline.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.chasmine.oneline.data.model.DiaryEntry
 
+/**
+ * 日記一覧のエントリー行
+ *
+ * デザイン「墨と和紙」:
+ * - 左側にアプリ名の由来である「一本の糸」= タイムラインの細い線を通す
+ * - 日付は細身の大きな数字で、雑誌の日付欄のように
+ * - 本文は影のないフラットな紙のカードに、和紙の折り目のような繊細な枠線
+ */
 @Composable
 fun DiaryCard(
     entry: DiaryEntry,
@@ -27,84 +36,83 @@ fun DiaryCard(
     showTopLine: Boolean = true,
     showBottomLine: Boolean = true
 ) {
-    // kotlinx.datetime.LocalDate用のフォーマット関数
     val dayText = entry.date.dayOfMonth.toString().padStart(2, '0')
     val monthYearText = "${entry.date.month.name.take(3)} ${entry.date.year}".uppercase()
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 20.dp)
     ) {
-        // タイムライン部分（縦線とドット）
+        // タイムライン（一本の糸）
         Box(
             modifier = Modifier
-                .width(48.dp)
-                .padding(end = 12.dp),
+                .width(52.dp)
+                .padding(end = 14.dp),
             contentAlignment = Alignment.TopCenter
         ) {
             Column(
                 modifier = Modifier.fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 上の線
+                // 上の糸
                 if (showTopLine) {
                     Box(
                         modifier = Modifier
-                            .width(2.dp)
-                            .height(24.dp)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            .width(1.dp)
+                            .height(26.dp)
+                            .background(MaterialTheme.colorScheme.outline)
                     )
                 } else {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(26.dp))
                 }
 
-                // ドット（円）
+                // 結び目（その日の点）
                 Box(
                     modifier = Modifier
-                        .size(12.dp)
+                        .size(8.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary)
                 )
 
-                // 下の線
+                // 下の糸
                 if (showBottomLine) {
                     Box(
                         modifier = Modifier
-                            .width(2.dp)
+                            .width(1.dp)
                             .fillMaxHeight()
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            .background(MaterialTheme.colorScheme.outline)
                     )
                 }
             }
 
-            // 日付表示（タイムライン上に重ねて表示）
+            // 日付（細身の数字で雑誌の日付欄のように）
             Column(
                 modifier = Modifier
-                    .padding(top = 40.dp)
-                    .width(48.dp),
+                    .padding(top = 42.dp)
+                    .width(52.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = dayText,
                     style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontWeight = FontWeight.Light,
+                        fontSize = 24.sp
                     ),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = monthYearText,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 9.sp
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 9.sp,
+                        letterSpacing = 1.2.sp
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // 日記内容のカード
+        // 本文（影のない紙のカード）
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -112,17 +120,18 @@ fun DiaryCard(
                 .clickable { onClick() },
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(
-                defaultElevation = 2.dp,
-                pressedElevation = 4.dp
+                defaultElevation = 0.dp,
+                pressedElevation = 0.dp
             ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Text(
                 text = entry.content,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface

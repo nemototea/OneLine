@@ -15,7 +15,7 @@
     <color name="on_surface">#E0E0E0</color>
 
     <!-- ウィジェット用の色（ライトテーマ）。values-nightにダークテーマ版がある -->
-    <!-- アプリ内FABと同じ LightPrimary / LightOnPrimary に合わせる -->
-    <color name="widget_background">#FF9500</color>
+    <!-- デザインシステム「墨と和紙」の LightPrimary / LightOnPrimary に合わせる -->
+    <color name="widget_background">#BC4B26</color>
     <color name="widget_on_background">#FFFFFF</color>
 </resources>

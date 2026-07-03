@@ -56,8 +56,9 @@ val Typography = Typography(
         fontFamily = NotoSansJpFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        // 日記本文が主役。行間をゆったり取り、紙に書いた文章のように読ませる
+        lineHeight = 26.sp,
+        letterSpacing = 0.3.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = NotoSansJpFontFamily,

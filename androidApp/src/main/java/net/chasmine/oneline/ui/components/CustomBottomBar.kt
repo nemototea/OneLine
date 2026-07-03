@@ -30,9 +30,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.chasmine.oneline.ui.theme.SwarmBlue
-import net.chasmine.oneline.ui.theme.SwarmPink
-import net.chasmine.oneline.ui.theme.SwarmPurple
+import net.chasmine.oneline.ui.theme.AccentGradientCenter
+import net.chasmine.oneline.ui.theme.AccentGradientEnd
+import net.chasmine.oneline.ui.theme.AccentGradientStart
 
 /**
  * Swarm風のボトムナビゲーションバー
@@ -125,11 +125,12 @@ fun CustomBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
+                        // 「書く」アクションだけに使う朱→琥珀のグラデーション
                         brush = Brush.linearGradient(
                             colors = listOf(
-                                SwarmPink,
-                                SwarmPurple,
-                                SwarmBlue
+                                AccentGradientStart,
+                                AccentGradientCenter,
+                                AccentGradientEnd
                             )
                         ),
                         shape = CircleShape

@@ -3,58 +3,62 @@ package net.chasmine.oneline.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // ==========================================
-// iOS-Inspired OneLine カラーテーマ
+// OneLine デザインシステム「墨と和紙」
 // ==========================================
-// コンセプト: iOSの洗練された美しさとSwarmの遊び心を融合
-// 柔らかく、モダンで、心地よい配色
+// コンセプト: 和紙のような温かい紙面に、墨の文字。
+// アクセントは印章の朱色ひとつに絞り、引き算で洗練をつくる。
+// 日記という「紙に向かう時間」を、色で静かに演出する。
 
-// ライトテーマ - iOS風の明るく清潔な印象
-val LightBackground = Color(0xFFF2F2F7)        // iOS標準のライトグレー背景
-val LightSurface = Color(0xFFFFFFFF)           // ピュアホワイト - カードやダイアログ
-val LightPrimary = Color(0xFFFF9500)           // iOS風のオレンジ - メインアクション（Swarmのアクセント）
-val LightSecondary = Color(0xFFFF9500)         // オレンジ（primaryと統一して視認性向上）
-val LightTertiary = Color(0xFF34C759)          // iOS風のグリーン - アクセント、成功表示
-val LightOnSurface = Color(0xFF000000)         // ブラック - 本文テキスト
-val LightOnPrimary = Color(0xFFFFFFFF)         // ホワイト - プライマリボタン上のテキスト
-val LightSurfaceVariant = Color(0xFFE8E8ED)    // より濃いグレー - セクション背景（視認性向上）
-val LightPrimaryContainer = Color(0xFFFFE5CC)  // オレンジ系の薄い背景 - カード強調用
-val LightSecondaryContainer = Color(0xFFFFF4D9) // 淡い黄色 - 補助的な背景
+// ライトテーマ - 昼の和紙
+val LightBackground = Color(0xFFF7F2E9)        // 和紙 - 温かみのある生成り
+val LightSurface = Color(0xFFFFFCF5)           // 明るい紙 - カードやダイアログ
+val LightPrimary = Color(0xFFBC4B26)           // 朱色 - 印章の朱。メインアクション
+val LightSecondary = Color(0xFF8A7A64)         // 焙じ茶 - 補助的なアクション
+val LightTertiary = Color(0xFF5E7F62)          // 抹茶 - 成功・アクセント
+val LightOnSurface = Color(0xFF221E17)         // 墨 - 本文テキスト
+val LightOnPrimary = Color(0xFFFFFFFF)         // 白 - 朱の上のテキスト
+val LightSurfaceVariant = Color(0xFFEDE5D6)    // 濃いめの和紙 - セクション背景
+val LightPrimaryContainer = Color(0xFFF8DED1)  // 朱の淡い滲み - 強調カード
+val LightSecondaryContainer = Color(0xFFF0E9DB) // 淡い生成り - 補助背景
 
-// ダークテーマ - iOS風の深く洗練された印象
-val DarkBackground = Color(0xFF000000)         // iOS標準のピュアブラック背景
-val DarkSurface = Color(0xFF1C1C1E)            // iOS風のダークサーフェス
-val DarkPrimary = Color(0xFFFF9F0A)            // iOS風のオレンジ（ダークモード調整）
-val DarkSecondary = Color(0xFFFFD60A)          // ゴールデンイエロー（ダークモード調整）
-val DarkTertiary = Color(0xFF32D74B)           // iOS風のグリーン（ダークモード調整）
-val DarkOnSurface = Color(0xFFFFFFFF)          // ホワイト - 本文テキスト
-val DarkOnPrimary = Color(0xFF000000)          // ブラック - プライマリボタン上のテキスト
-val DarkSurfaceVariant = Color(0xFF2C2C2E)     // iOS風の第2レベルサーフェス
-val DarkPrimaryContainer = Color(0xFF4D2800)   // オレンジ系の暗い背景 - カード強調用
-val DarkSecondaryContainer = Color(0xFF4D4000) // 黄色系の暗い背景 - 補助的な背景
+// ダークテーマ - 夜の書斎
+val DarkBackground = Color(0xFF16120D)         // 夜の墨 - 温かみのある黒
+val DarkSurface = Color(0xFF1F1A14)            // 行灯の影 - カード面
+val DarkPrimary = Color(0xFFE58E64)            // 灯りの朱 - ダークで映える暖色
+val DarkSecondary = Color(0xFFBCAB92)          // 月光の生成り
+val DarkTertiary = Color(0xFF93B295)           // 夜の抹茶
+val DarkOnSurface = Color(0xFFECE5D8)          // 紙色の文字
+val DarkOnPrimary = Color(0xFF2F1305)          // 濃墨 - 朱の上のテキスト
+val DarkSurfaceVariant = Color(0xFF2B241C)     // 第2レベルサーフェス
+val DarkPrimaryContainer = Color(0xFF522815)   // 朱の暗い滲み
+val DarkSecondaryContainer = Color(0xFF3B342A) // 補助背景
 
 // ==========================================
-// 追加の補助カラー（iOS風）
+// 補助カラー
 // ==========================================
 
 // エラー・警告系
-val LightError = Color(0xFFFF3B30)             // iOS風の赤 - エラー表示
-val DarkError = Color(0xFFFF453A)              // iOS風の赤（ダークモード）
+val LightError = Color(0xFFB3261E)             // 落ち着いた赤
+val DarkError = Color(0xFFFFB4AB)              // ダーク用の淡い赤
 
-// 半透明・境界線
-val LightOutline = Color(0xFFE5E5EA)           // iOS風の薄いグレー - 境界線
-val DarkOutline = Color(0xFF38383A)            // iOS風の境界線（ダークモード）
+// 境界線（和紙の折り目のような繊細な線）
+val LightOutline = Color(0xFFDBD1BF)
+val DarkOutline = Color(0xFF473F32)
 
-// 無効状態・補助テキスト
-val LightOnSurfaceVariant = Color(0xFF3C3C43) // より濃いグレー - 視認性向上
-val DarkOnSurfaceVariant = Color(0xFF98989D)  // iOS風のグレー（ダークモード）
+// 補助テキスト
+val LightOnSurfaceVariant = Color(0xFF5F5749)  // 薄墨
+val DarkOnSurfaceVariant = Color(0xFFAAA08E)   // 夜の薄墨
 
 // ダイアログ・コンテナ背景
-val LightSurfaceContainer = Color(0xFFFFFFFF)      // ダイアログ背景 - 純白
-val LightSurfaceContainerHigh = Color(0xFFFFFFFF)  // 高レベルコンテナ - 純白
-val DarkSurfaceContainer = Color(0xFF1C1C1E)       // ダイアログ背景
-val DarkSurfaceContainerHigh = Color(0xFF2C2C2E)   // 高レベルコンテナ
+val LightSurfaceContainer = Color(0xFFFFFCF5)
+val LightSurfaceContainerHigh = Color(0xFFF3ECDF)
+val DarkSurfaceContainer = Color(0xFF1F1A14)
+val DarkSurfaceContainerHigh = Color(0xFF2B241C)
 
-// Swarm風の遊び心のあるアクセントカラー
-val SwarmBlue = Color(0xFF4A90E2)              // Swarm風のブルー
-val SwarmPurple = Color(0xFF9B59B6)            // Swarm風のパープル
-val SwarmPink = Color(0xFFE91E63)              // Swarm風のピンク
+// ==========================================
+// アクセントグラデーション（朱 → 琥珀）
+// ==========================================
+// FABなど「書く」アクションにだけ使う、夕暮れの空のようなグラデーション
+val AccentGradientStart = Color(0xFFBC4B26)    // 朱
+val AccentGradientCenter = Color(0xFFD97636)   // 柿
+val AccentGradientEnd = Color(0xFFE9A23B)      // 琥珀
