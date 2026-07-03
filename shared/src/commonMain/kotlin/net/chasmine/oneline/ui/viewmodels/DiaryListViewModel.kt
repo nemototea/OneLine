@@ -3,8 +3,8 @@ package net.chasmine.oneline.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import net.chasmine.oneline.data.repository.RepositoryFactory
+import net.chasmine.oneline.data.repository.RepositoryMode
 import net.chasmine.oneline.data.model.DiaryEntry
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
@@ -15,6 +15,11 @@ import kotlinx.coroutines.launch
 /**
  * 日記リスト画面のViewModel（共通コード）
  *
+ * 同期戦略（ローカルファースト）:
+ * - 画面表示時はまず手元のデータを即座に表示する
+ * - 自動同期は前回成功から一定時間(AUTO_SYNC_INTERVAL_MILLIS)経過時のみ実行
+ * - pull-to-refresh・同期ボタンからの手動同期は常に実行
+ *
  * @param repositoryFactory リポジトリファクトリー
  */
 class DiaryListViewModel(
@@ -23,6 +28,9 @@ class DiaryListViewModel(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
     private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
     val syncStatus: StateFlow<SyncStatus> = _syncStatus
@@ -45,11 +53,11 @@ class DiaryListViewModel(
 
     init {
         viewModelScope.launch {
-            // リポジトリを初期化
             repositoryFactory.initialize()
 
-            val hasSettings = repositoryFactory.hasValidSettings()
-            if (hasSettings) syncRepository()
+            // まず手元のデータを即表示し、同期はバックグラウンドで行う
+            loadEntries()
+            autoSyncIfNeeded()
         }
     }
 
@@ -65,11 +73,7 @@ class DiaryListViewModel(
 
                 // 今日の日記をチェック
                 val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-                val todayEntryFound = diaryEntries.find { it.date == today }
-                _todayEntry.value = todayEntryFound
-
-                println("DiaryListViewModel: Loaded entries: ${diaryEntries.size}") // デバッグ用ログ
-                println("DiaryListViewModel: Today's entry: ${todayEntryFound?.content ?: "None"}")
+                _todayEntry.value = diaryEntries.find { it.date == today }
             }
         }
     }
@@ -94,13 +98,9 @@ class DiaryListViewModel(
 
                     // まだデータがあるかチェック
                     _hasMoreData.value = endIndex < allEntries.size
-
-                    println("DiaryListViewModel: Loaded more entries: ${newEntries.size}")
                 } else {
                     _hasMoreData.value = false
                 }
-            } catch (e: Exception) {
-                println("DiaryListViewModel: Failed to load more entries: ${e.message}")
             } finally {
                 _isLoadingMore.value = false
             }
@@ -120,45 +120,66 @@ class DiaryListViewModel(
                 if (success) {
                     // エントリーを再読み込み
                     loadEntries()
-                    println("DiaryListViewModel: Today's entry saved: $content")
-                } else {
-                    println("DiaryListViewModel: Failed to save today's entry")
                 }
             } catch (e: Exception) {
-                println("DiaryListViewModel: Failed to save today's entry: ${e.message}")
+                _syncStatus.value = SyncStatus.Error(e.message ?: "日記の保存に失敗しました")
             }
         }
     }
 
-    private suspend fun initializeRepository() {
-        _isLoading.value = true
+    /**
+     * 前回の同期から一定時間経過している場合のみ自動同期する
+     * （画面遷移のたびに通信が走るのを防ぐ）
+     */
+    private suspend fun autoSyncIfNeeded() {
+        if (repositoryFactory.getCurrentMode() != RepositoryMode.Git) return
+
+        val now = Clock.System.now().toEpochMilliseconds()
+        if (now - lastSuccessfulSyncMillis < AUTO_SYNC_INTERVAL_MILLIS) return
+
+        doSync()
+    }
+
+    /**
+     * 手動同期（pull-to-refresh・同期ボタン）
+     * スロットルせず常に実行する
+     */
+    fun refresh() {
+        viewModelScope.launch {
+            if (repositoryFactory.getCurrentMode() != RepositoryMode.Git) {
+                // ローカルモードでは再読み込みのみ
+                loadEntries()
+                return@launch
+            }
+
+            _isRefreshing.value = true
+            try {
+                doSync()
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    /**
+     * 手動同期（互換用エイリアス）
+     */
+    fun syncRepository() = refresh()
+
+    private suspend fun doSync() {
+        _syncStatus.value = SyncStatus.Syncing
+
         try {
-            val success = repositoryFactory.initialize()
-            if (!success) {
-                _syncStatus.value = SyncStatus.Error("リポジトリの初期化に失敗しました")
+            val success = repositoryFactory.syncRepository()
+            if (success) {
+                lastSuccessfulSyncMillis = Clock.System.now().toEpochMilliseconds()
+                _syncStatus.value = SyncStatus.Success
+                loadEntries() // 同期成功後にエントリを再ロード
+            } else {
+                _syncStatus.value = SyncStatus.Error("同期に失敗しました")
             }
         } catch (e: Exception) {
-            _syncStatus.value = SyncStatus.Error(e.message ?: "リポジトリの初期化に失敗しました")
-        } finally {
-            _isLoading.value = false
-        }
-    }
-
-    fun syncRepository() {
-        viewModelScope.launch {
-            _syncStatus.value = SyncStatus.Syncing
-
-            try {
-                val success = repositoryFactory.syncRepository()
-                if (success) {
-                    _syncStatus.value = SyncStatus.Success
-                    loadEntries() // 同期成功後にエントリを再ロード
-                } else {
-                    _syncStatus.value = SyncStatus.Error("同期に失敗しました")
-                }
-            } catch (e: Exception) {
-                _syncStatus.value = SyncStatus.Error(e.message ?: "同期に失敗しました")
-            }
+            _syncStatus.value = SyncStatus.Error(e.message ?: "同期に失敗しました")
         }
     }
 
@@ -167,5 +188,11 @@ class DiaryListViewModel(
         object Syncing : SyncStatus()
         object Success : SyncStatus()
         data class Error(val message: String) : SyncStatus()
+    }
+
+    companion object {
+        // ViewModelは画面遷移のたびに再生成されるため、同期時刻はプロセス内で共有する
+        private var lastSuccessfulSyncMillis: Long = 0L
+        private const val AUTO_SYNC_INTERVAL_MILLIS = 5 * 60 * 1000L
     }
 }

@@ -82,17 +82,12 @@ class DiaryEditViewModel(
                 _saveStatus.value = SaveStatus.Saving
 
                 try {
+                    // 保存はローカルへのコミットまでで完了とし、リモートへのpushは
+                    // リポジトリ側がバックグラウンドで行う（ユーザーを待たせない）
                     val success = repositoryFactory.saveEntry(currentState.entry)
 
                     if (success) {
-                        // 保存成功後に同期を試行
-                        val syncSuccess = repositoryFactory.syncRepository()
-                        if (syncSuccess) {
-                            _saveStatus.value = SaveStatus.Success
-                        } else {
-                            // 同期に失敗しても保存は成功
-                            _saveStatus.value = SaveStatus.Success
-                        }
+                        _saveStatus.value = SaveStatus.Success
                     } else {
                         _saveStatus.value = SaveStatus.Error("日記の保存に失敗しました")
                     }
@@ -119,18 +114,12 @@ class DiaryEditViewModel(
                 _saveStatus.value = SaveStatus.Saving
 
                 try {
+                    // 削除もローカルへのコミットまでで完了とし、pushはバックグラウンドで行う
                     val dateString = currentState.entry.date.toString()
                     val success = repositoryFactory.deleteEntry(dateString)
 
                     if (success) {
-                        // 削除成功後に同期を試行
-                        val syncSuccess = repositoryFactory.syncRepository()
-                        if (syncSuccess) {
-                            _saveStatus.value = SaveStatus.DeleteSuccess
-                        } else {
-                            // 同期に失敗しても削除は成功
-                            _saveStatus.value = SaveStatus.DeleteSuccess
-                        }
+                        _saveStatus.value = SaveStatus.DeleteSuccess
                     } else {
                         _saveStatus.value = SaveStatus.Error("日記の削除に失敗しました")
                     }

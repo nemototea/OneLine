@@ -19,6 +19,34 @@ actual class GitOperations {
     private var localPath: String? = null
     private var isInitialized: Boolean = false
 
+    /**
+     * リポジトリ削除前に日記ファイル(YYYY-MM-DD.md)を退避する
+     * リモートURL変更時などの deleteRecursively で未プッシュの日記が失われるのを防ぐ
+     */
+    private fun backupDiaryFilesBeforeDelete(repoDirectory: File) {
+        try {
+            if (!repoDirectory.exists()) return
+            val mdFiles = repoDirectory.listFiles { file ->
+                file.isFile && file.name.matches(Regex("\\d{4}-\\d{2}-\\d{2}\\.md"))
+            } ?: return
+            if (mdFiles.isEmpty()) return
+
+            val backupRoot = File(repoDirectory.parentFile, "${repoDirectory.name}_backup")
+            val backupDir = File(backupRoot, System.currentTimeMillis().toString())
+            backupDir.mkdirs()
+            mdFiles.forEach { it.copyTo(File(backupDir, it.name), overwrite = true) }
+
+            // 古い退避データは直近5世代のみ保持
+            backupRoot.listFiles()
+                ?.filter { it.isDirectory }
+                ?.sortedByDescending { it.name.toLongOrNull() ?: 0L }
+                ?.drop(5)
+                ?.forEach { it.deleteRecursively() }
+        } catch (_: Exception) {
+            // 退避失敗は削除処理自体を妨げない
+        }
+    }
+
     actual suspend fun initRepository(
         repoUrl: String,
         localPath: String,
@@ -43,11 +71,13 @@ actual class GitOperations {
                     existingGit.close()
 
                     if (existingRemoteUrl != null && existingRemoteUrl != repoUrl) {
-                        // URLが異なる場合は既存のリポジトリを削除
+                        // URLが異なる場合は日記を退避してから既存のリポジトリを削除
+                        backupDiaryFilesBeforeDelete(repoDirectory)
                         repoDirectory.deleteRecursively()
                     }
                 } catch (e: Exception) {
-                    // 既存のリポジトリを開けない場合は削除
+                    // 既存のリポジトリを開けない場合は日記を退避してから削除
+                    backupDiaryFilesBeforeDelete(repoDirectory)
                     repoDirectory.deleteRecursively()
                 }
             }
@@ -55,6 +85,7 @@ actual class GitOperations {
             if (!repoDirectory.exists() || !File(repoDirectory, ".git").exists()) {
                 // 新規クローン
                 if (repoDirectory.exists()) {
+                    backupDiaryFilesBeforeDelete(repoDirectory)
                     repoDirectory.deleteRecursively()
                 }
                 repoDirectory.mkdirs()
@@ -200,7 +231,31 @@ actual class GitOperations {
             // MERGING状態なら強制リセット
             val repo = git!!.repository
             if (repo.repositoryState.toString().contains("MERGING")) {
+                // reset --hard で未コミットの日記内容が失われないよう退避する
+                val status = git!!.status().call()
+                val dirtyDiaryContents = (status.modified + status.untracked + status.conflicting)
+                    .filter { it.endsWith(".md") }
+                    .mapNotNull { name ->
+                        val file = File(localPath, name)
+                        if (file.exists()) name to file.readText() else null
+                    }
+                    .toMap()
+
                 git!!.reset().setMode(org.eclipse.jgit.api.ResetCommand.ResetType.HARD).call()
+
+                // 退避した内容を復元してコミット
+                var restoredAny = false
+                dirtyDiaryContents.forEach { (name, content) ->
+                    val file = File(localPath, name)
+                    if (!file.exists() || file.readText() != content) {
+                        file.writeText(content)
+                        git!!.add().addFilepattern(name).call()
+                        restoredAny = true
+                    }
+                }
+                if (restoredAny) {
+                    git!!.commit().setMessage("Recover local diary changes after merge abort").call()
+                }
             }
 
             // pull実行
