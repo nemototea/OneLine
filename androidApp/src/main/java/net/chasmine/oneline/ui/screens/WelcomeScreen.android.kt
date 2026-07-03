@@ -120,7 +120,15 @@ fun WelcomeScreen(
                 }
             }
         },
-        onStartFirstEntry = onStartFirstEntry,
+        onStartFirstEntry = {
+            // 権限の裏付けがない「通知ON」を残さない（正直な状態表示）。
+            // 通知ページをスキップした場合など、権限未許可のままONだったら
+            // OFFに倒してから開始する（設定画面からいつでも有効化できる）
+            if (notificationEnabled && !hasNotificationPermission()) {
+                notificationPrefs.setNotificationEnabled(false)
+            }
+            onStartFirstEntry()
+        },
         settingsManager = settingsManager
     )
 }

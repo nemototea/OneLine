@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
@@ -35,21 +36,35 @@ fun NotificationSettingsSection() {
     
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showPermissionDeniedInfo by remember { mutableStateOf(false) }
-    
-    // 権限状態をチェック
-    val hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.POST_NOTIFICATIONS
-        ) == PackageManager.PERMISSION_GRANTED
-    } else {
-        true
+    var permissionRequestedBefore by remember { mutableStateOf(false) }
+
+    // 権限状態をチェック。OS設定から戻ってきたタイミング（＝ウィンドウフォーカスの
+    // 復帰）でも再評価し、画面が古い権限状態のまま表示されるのを防ぐ
+    val isWindowFocused = LocalWindowInfo.current.isWindowFocused
+    val hasPermission = remember(isWindowFocused) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
     }
-    
-    // 権限が拒否されている場合の表示判定
+
+    // ONなのに権限がない状態は、リクエスト履歴に関係なく案内する（正直な状態表示）
     LaunchedEffect(isNotificationEnabled, hasPermission) {
-        showPermissionDeniedInfo = isNotificationEnabled && !hasPermission && 
-                notificationPrefs.isPermissionRequested()
+        permissionRequestedBefore = notificationPrefs.isPermissionRequested()
+        showPermissionDeniedInfo = isNotificationEnabled && !hasPermission
+    }
+
+    // アプリの通知設定（OS側）を開く
+    fun openAppSettings() {
+        val intent = android.content.Intent().apply {
+            action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+            data = android.net.Uri.fromParts("package", context.packageName, null)
+        }
+        context.startActivity(intent)
     }
     
     // 通知権限のリクエスト
@@ -95,25 +110,30 @@ fun NotificationSettingsSection() {
                             color = MaterialTheme.colorScheme.error
                         )
                         Text(
-                            text = "日記リマインダーを受け取るには、端末の設定から通知権限を有効にしてください。",
+                            text = if (permissionRequestedBefore) {
+                                "日記リマインダーを受け取るには、端末の設定から通知権限を有効にしてください。"
+                            } else {
+                                "日記リマインダーを受け取るには、通知権限の許可が必要です。"
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                         Button(
                             onClick = {
-                                // 設定アプリを開く
-                                val intent = android.content.Intent().apply {
-                                    action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                                    data = android.net.Uri.fromParts("package", context.packageName, null)
+                                if (permissionRequestedBefore) {
+                                    // 一度拒否済みならOSダイアログが出ない可能性が高いため設定アプリへ
+                                    openAppSettings()
+                                } else {
+                                    // 未リクエストならその場で権限を要求する
+                                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
-                                context.startActivity(intent)
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.error
                             )
                         ) {
-                            Text("設定アプリを開く")
+                            Text(if (permissionRequestedBefore) "設定アプリを開く" else "通知を許可する")
                         }
                     }
                 }
@@ -276,17 +296,27 @@ fun NotificationSettingsSection() {
         }
     }
     
-    // 権限拒否時のダイアログ
+    // 権限拒否時のダイアログ（行き止まりにならないよう設定アプリへの導線を付ける）
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
             title = { Text("通知権限が必要です") },
-            text = { 
-                Text("日記リマインダーを受け取るには、通知権限を許可してください。設定アプリから権限を有効にできます。") 
+            text = {
+                Text("日記リマインダーを受け取るには、通知権限を許可してください。設定アプリから権限を有効にできます。")
             },
             confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        openAppSettings()
+                    }
+                ) {
+                    Text("設定を開く")
+                }
+            },
+            dismissButton = {
                 TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("OK")
+                    Text("閉じる")
                 }
             }
         )
