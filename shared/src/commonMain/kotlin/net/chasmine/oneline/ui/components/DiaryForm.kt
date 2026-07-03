@@ -21,6 +21,9 @@ fun DiaryForm(
     onDelete: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    // 空の日記は保存できない（保存しても一覧に表示されず混乱のもとになる）
+    val canSave = entry.content.isNotBlank()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -50,7 +53,7 @@ fun DiaryForm(
                         }
                     }
 
-                    IconButton(onClick = onSave) {
+                    IconButton(onClick = onSave, enabled = canSave) {
                         Icon(
                             imageVector = Icons.Default.Save,
                             contentDescription = "保存"
@@ -89,9 +92,10 @@ fun DiaryForm(
 
             Button(
                 onClick = onSave,
+                enabled = canSave,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("保存する")
+                Text(if (canSave) "保存する" else "今日の一行を書いてみましょう")
             }
         }
     }

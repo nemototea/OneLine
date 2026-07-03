@@ -78,6 +78,11 @@ class DiaryEditViewModel(
     fun saveEntry() {
         val currentState = _uiState.value
         if (currentState is UiState.Editing) {
+            // 空の日記は保存しない（UI側でもボタンを無効化しているが念のためガード）
+            if (currentState.entry.content.isBlank()) {
+                _saveStatus.value = SaveStatus.Error("日記の内容を入力してください")
+                return
+            }
             viewModelScope.launch {
                 _saveStatus.value = SaveStatus.Saving
 

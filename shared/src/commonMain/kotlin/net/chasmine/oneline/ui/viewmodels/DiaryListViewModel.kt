@@ -63,7 +63,9 @@ class DiaryListViewModel(
 
     fun loadEntries() {
         viewModelScope.launch {
-            repositoryFactory.getAllEntries().collect { diaryEntries ->
+            repositoryFactory.getAllEntries().collect { loaded ->
+                // 内容が空のエントリーは表示しない（過去バージョンで空保存できた名残への防御）
+                val diaryEntries = loaded.filter { it.content.isNotBlank() }
                 allEntries = diaryEntries
                 currentPage = 0
                 _hasMoreData.value = allEntries.size > pageSize

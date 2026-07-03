@@ -58,6 +58,7 @@ fun WelcomeScreenImpl(
     notificationMinute: Int,
     onNotificationToggle: (Boolean) -> Unit,
     onPickNotificationTime: () -> Unit,
+    onNotificationPageVisible: () -> Unit,
     onStartFirstEntry: () -> Unit,
     settingsManager: SettingsManager
 ) {
@@ -92,6 +93,16 @@ fun WelcomeScreenImpl(
     val lastPageIndex = pageCount - 1
 
     val pagerState = rememberPagerState(pageCount = { pageCount })
+
+    // スイッチはデフォルトONのため、通知ページが表示された時点で
+    // 権限の確認・リクエストを行う（初回表示時のみ）
+    var notificationPageSeen by remember { mutableStateOf(false) }
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == notificationPageIndex && !notificationPageSeen) {
+            notificationPageSeen = true
+            onNotificationPageVisible()
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()

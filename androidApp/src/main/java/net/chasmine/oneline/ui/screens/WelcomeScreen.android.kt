@@ -104,6 +104,22 @@ fun WelcomeScreen(
                 true
             ).show()
         },
+        onNotificationPageVisible = {
+            // スイッチが初期状態でONのため、ページが表示された時点で権限を確認する。
+            // 未許可ならここでリクエストし、拒否されたらランチャー側でスイッチをOFFに戻す
+            if (notificationEnabled) {
+                if (hasNotificationPermission()) {
+                    scope.launch {
+                        notificationManager.scheduleDailyNotification(
+                            notificationHour,
+                            notificationMinute
+                        )
+                    }
+                } else {
+                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        },
         onStartFirstEntry = onStartFirstEntry,
         settingsManager = settingsManager
     )
