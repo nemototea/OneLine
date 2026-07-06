@@ -10,11 +10,12 @@ import androidx.compose.ui.unit.sp
 expect val NotoSansJpFontFamily: FontFamily
 
 val Typography = Typography(
+    // DESIGN.md: display — 画面タイトル・ブランド。装飾的な大見出しは使わず余白で格を出す
     displayLarge = TextStyle(
         fontFamily = NotoSansJpFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 26.sp,
+        lineHeight = 34.sp,
         letterSpacing = 0.sp
     ),
     displayMedium = TextStyle(
@@ -95,4 +96,11 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
+)
+
+// DESIGN.md: dateNumeral — 一覧の日付数字。細身の Light で大きく、雑誌の日付欄の佇まい
+val DateNumeralStyle = TextStyle(
+    fontFamily = NotoSansJpFontFamily,
+    fontWeight = FontWeight.Light,
+    fontSize = 24.sp
 )

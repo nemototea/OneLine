@@ -1,6 +1,6 @@
 ---
 name: "OneLine — 墨と和紙 (Sumi & Washi)"
-version: "1.0"
+version: "1.1"
 platform: "Compose Multiplatform (Android / iOS)"
 colors:
   light:
@@ -40,7 +40,7 @@ typography:
   caption:  { size: 12, weight: 400, lineHeight: 16 }
   label:    { size: 11, weight: 500, letterSpacing: 0.5 }
   dateNumeral: { size: 24, weight: 300 }                 # 一覧の日付数字。細身で大きく
-spacing: [4, 8, 12, 16, 24, 32, 48]
+spacing: [4, 8, 12, 16, 20, 24, 32, 48]
 rounded: { xs: 6, sm: 10, md: 14, lg: 20, xl: 28, full: 9999 }
 components:
   button-primary:  { backgroundColor: primary, textColor: onPrimary, rounded: md, height: 52 }
@@ -88,7 +88,7 @@ OneLine は「一行だけの日記」アプリ。デザインの主題は **紙
 
 ## Layout
 
-- 基本余白: 画面端 20dp、カード内 16〜18dp、セクション間 24dp。spacing スケール外の値を発明しない。
+- 基本余白: 画面端 20dp、カード内 16dp、セクション間 24dp。spacing スケール外の値を発明しない。
 - タッチターゲットは最小 48dp。主要操作（書く・保存）は親指の届く画面下部に置く。
 - 1画面1目的。一覧は「振り返る」、編集は「書く」、カレンダーは「俯瞰する」。目的の違う要素を混ぜない。
 - リストは端から端まで線を引かず、要素間の余白と折り目線で呼吸させる。
@@ -110,7 +110,7 @@ OneLine は「一行だけの日記」アプリ。デザインの主題は **紙
   日付は糸の上に `dateNumeral`。本文は card-entry に載せ、3行で省略。
 - **fab-write**: 画面下中央。朱→琥珀のグラデーション円。アプリで唯一のグラデーション。
 - **bottom-bar**: 2タブ（日記・カレンダー）＋中央 FAB。surface 色、上角丸 20。
-- **input-diary**: 编集画面の入力欄。ラベルは小さく朱、本文は body。枠は outline 1dp。
+- **input-diary**: 編集画面の入力欄。ラベルは小さく朱、本文は body。枠は outline 1dp。
 - **dialog / sheet**: surface 色、角丸 20以上。ボタンは右寄せ、破壊的操作は error 色のテキストボタン。
 
 ## Screens & Navigation
@@ -128,6 +128,36 @@ OneLine は「一行だけの日記」アプリ。デザインの主題は **紙
 
 **将来の拡張（この方向でのみ足す）**: 「この日の思い出 (On This Day)」/ 書くきっかけのプロンプト表示。
 どちらも Day One 等で実証済みのパターンに限る。
+
+## Compose 実装マッピング（Material 3）
+
+トークンと Compose Multiplatform（Material 3）の対応。実装は必ずこの表を経由する。
+表にないスロット（`titleLarge` 等）は Material コンポーネント内部の補間値であり、画面実装で直接指定しない。
+
+- **単位**: typography の size / lineHeight / letterSpacing は **sp**、spacing / rounded / borderWidth / サイズは **dp**。
+- **実装ファイル**: `shared/src/commonMain/kotlin/net/chasmine/oneline/ui/theme/{Color,Type,Theme}.kt`
+
+| DESIGN.md トークン | Compose (Material 3) |
+|---|---|
+| `background` | `colorScheme.background` |
+| `surface` | `colorScheme.surface` |
+| `surfaceVariant` | `colorScheme.surfaceVariant` |
+| `primary` / `onPrimary` / `primaryContainer` | `colorScheme.primary` / `onPrimary` / `primaryContainer` |
+| `secondary` | `colorScheme.secondary` |
+| `tertiary` | `colorScheme.tertiary` |
+| `text` | `colorScheme.onSurface`（= `onBackground`） |
+| `textMuted` | `colorScheme.onSurfaceVariant` |
+| `outline` | `colorScheme.outline` |
+| `error` | `colorScheme.error` |
+| `gradient.write` | `AccentGradientStart/Center/End`（Color.kt の定数。ColorScheme 外） |
+| `display` | `typography.displayLarge` |
+| `headline` | `typography.headlineMedium` |
+| `title` | `typography.titleMedium` |
+| `body` | `typography.bodyLarge` |
+| `caption` | `typography.bodySmall` |
+| `label` | `typography.labelSmall` |
+| `dateNumeral` | `DateNumeralStyle`（Type.kt の専用 TextStyle） |
+| `rounded` xs/sm/md/lg/xl | `shapes.extraSmall(6)/small(10)/medium(14)/large(20)/extraLarge(28)` |
 
 ## Do's and Don'ts
 

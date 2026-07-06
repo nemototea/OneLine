@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.chasmine.oneline.ui.components.DiaryCard
@@ -72,9 +71,7 @@ fun DiaryListScreenImpl(
                 title = {
                     Text(
                         text = "OneLine",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+                        style = MaterialTheme.typography.displayLarge
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

@@ -98,9 +98,7 @@ fun CalendarScreenImpl(
                 title = {
                     Text(
                         text = "OneLine",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+                        style = MaterialTheme.typography.displayLarge
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),
