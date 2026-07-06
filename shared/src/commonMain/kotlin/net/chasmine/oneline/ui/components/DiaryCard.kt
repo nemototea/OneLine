@@ -14,11 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import net.chasmine.oneline.data.model.DiaryEntry
+import net.chasmine.oneline.ui.theme.DateNumeralStyle
 
 /**
  * 日記一覧のエントリー行
@@ -37,7 +40,10 @@ fun DiaryCard(
     showBottomLine: Boolean = true
 ) {
     val dayText = entry.date.dayOfMonth.toString().padStart(2, '0')
-    val monthYearText = "${entry.date.month.name.take(3)} ${entry.date.year}".uppercase()
+    val monthText = entry.date.month.name.take(3).uppercase()
+    // 年は今年と違うときだけ添える（毎行の繰り返しを避け、必要な情報だけ残す）
+    val currentYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
+    val yearText = entry.date.year.takeIf { it != currentYear }?.toString()
 
     Row(
         modifier = modifier
@@ -95,20 +101,25 @@ fun DiaryCard(
             ) {
                 Text(
                     text = dayText,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Light,
-                        fontSize = 24.sp
-                    ),
+                    style = DateNumeralStyle,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = monthYearText,
+                    text = monthText,
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 9.sp,
                         letterSpacing = 1.2.sp
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (yearText != null) {
+                    Text(
+                        text = yearText,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            letterSpacing = 1.2.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
 
@@ -131,7 +142,7 @@ fun DiaryCard(
             Text(
                 text = entry.content,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+                modifier = Modifier.padding(16.dp),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface

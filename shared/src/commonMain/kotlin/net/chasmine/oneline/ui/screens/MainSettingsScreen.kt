@@ -1,15 +1,17 @@
 package net.chasmine.oneline.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,8 +41,16 @@ fun MainSettingsScreenImpl(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("設定") },
+                title = {
+                    Text(
+                        text = "設定",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                },
                 windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -52,34 +62,24 @@ fun MainSettingsScreenImpl(
             )
         }
     ) { paddingValues ->
+        // DESIGN.md: 設定はデータ保存・通知・テーマ・情報の4群に整理する
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                SettingsSection(title = "表示") {
+                SettingsSection(title = "データ保存") {
                     SettingsItem(
-                        icon = Icons.Default.Palette,
-                        title = "テーマ",
-                        subtitle = currentThemeMode.displayName,
-                        onClick = { showThemeDialog = true }
-                    )
-                }
-            }
-
-            item {
-                SettingsSection(title = "データ管理") {
-                    SettingsItem(
-                        icon = Icons.Default.Sync,
+                        icon = Icons.Outlined.Storage,
                         title = "データ保存設定",
                         subtitle = "ローカル保存またはGit連携",
                         onClick = onNavigateToDataStorage
                     )
                     SettingsItem(
-                        icon = Icons.Default.Sync,
+                        icon = Icons.Outlined.Cloud,
                         title = "Git連携設定",
                         subtitle = "GitHubリポジトリとの同期設定",
                         onClick = onNavigateToGitSettings
@@ -90,7 +90,7 @@ fun MainSettingsScreenImpl(
             item {
                 SettingsSection(title = "通知") {
                     SettingsItem(
-                        icon = Icons.Default.Notifications,
+                        icon = Icons.Outlined.Notifications,
                         title = "通知設定",
                         subtitle = "日記リマインダーの設定",
                         onClick = onNavigateToNotificationSettings
@@ -99,9 +99,20 @@ fun MainSettingsScreenImpl(
             }
 
             item {
-                SettingsSection(title = "その他") {
+                SettingsSection(title = "テーマ") {
                     SettingsItem(
-                        icon = Icons.Default.Info,
+                        icon = Icons.Outlined.Palette,
+                        title = "テーマ",
+                        subtitle = currentThemeMode.displayName,
+                        onClick = { showThemeDialog = true }
+                    )
+                }
+            }
+
+            item {
+                SettingsSection(title = "情報") {
+                    SettingsItem(
+                        icon = Icons.Outlined.Info,
                         title = "アプリについて",
                         subtitle = "バージョン情報・ライセンス",
                         onClick = onNavigateToAbout
@@ -114,7 +125,7 @@ fun MainSettingsScreenImpl(
                 item {
                     SettingsSection(title = "開発者向け") {
                         SettingsItem(
-                            icon = Icons.Default.Info,
+                            icon = Icons.Outlined.Info,
                             title = "KMP/CMP 動作確認",
                             subtitle = "マルチプラットフォーム機能のテスト",
                             onClick = onNavigateToKmpVerification
@@ -177,15 +188,17 @@ fun SettingsSection(
     Column {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
+        // 紙のカード: surface ＋ 折り目線。影と色面で区切らない
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
             content()
         }
@@ -209,7 +222,8 @@ fun SettingsItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            // 補助的な導線なので焙じ茶（secondary）。朱は主アクションに取っておく
+            tint = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.size(24.dp)
         )
 

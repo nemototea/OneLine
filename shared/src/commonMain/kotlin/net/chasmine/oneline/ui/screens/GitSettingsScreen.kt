@@ -1,16 +1,17 @@
 package net.chasmine.oneline.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -100,8 +101,16 @@ fun GitSettingsScreenImpl(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isInitialSetup) "Git連携の設定" else "データ同期設定") },
+                title = {
+                    Text(
+                        text = if (isInitialSetup) "Git連携の設定" else "データ同期設定",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                },
                 windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 navigationIcon = {
                     if (!isInitialSetup) {
                         IconButton(onClick = onNavigateBack) {
@@ -115,7 +124,7 @@ fun GitSettingsScreenImpl(
                 actions = {
                     IconButton(onClick = { showCreateRepoHelpDialog = true }) {
                         Icon(
-                            imageVector = Icons.Default.Help,
+                            imageVector = Icons.Outlined.HelpOutline,
                             contentDescription = "ヘルプ"
                         )
                     }
@@ -154,7 +163,7 @@ fun GitSettingsScreenImpl(
                         placeholder = { Text("https://github.com/username/my-diary.git") },
                         modifier = Modifier.fillMaxWidth(),
                         supportingText = {
-                            Text("💡 日記専用のプライベートリポジトリを使用してください")
+                            Text("日記専用のプライベートリポジトリを使用してください")
                         }
                     )
 
@@ -189,6 +198,7 @@ fun GitSettingsScreenImpl(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = repoUrl.isNotEmpty() && username.isNotEmpty() && token.isNotEmpty() &&
                                  uiState !is SettingsViewModel.UiState.Validating,
+                        shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isValidationPassed)
                                 MaterialTheme.colorScheme.primary
@@ -203,17 +213,17 @@ fun GitSettingsScreenImpl(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("検証中...")
                         } else if (isValidationPassed) {
-                            Text("✓ 検証済み - 再度検証")
+                            Text("検証済み — 再度検証")
                         } else {
                             Text("リポジトリの有効性を検証")
                         }
                     }
 
-                    // コミット情報セクション（Card内にグルーピング）
+                    // コミット情報セクション（濃い和紙の地でグルーピング）
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     ) {
                         Column(
@@ -221,20 +231,10 @@ fun GitSettingsScreenImpl(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             // セクションタイトル
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = "🌱",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "GitHubで草を生やそう",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                            Text(
+                                text = "GitHubで草を生やそう",
+                                style = MaterialTheme.typography.titleMedium
+                            )
 
                             // 説明
                             Text(
@@ -303,7 +303,10 @@ fun GitSettingsScreenImpl(
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(14.dp),
                             enabled = commitUserName.isNotEmpty() && commitUserEmail.isNotEmpty() &&
                                      uiState !is SettingsViewModel.UiState.Saving
                         ) {
@@ -476,9 +479,9 @@ fun GitSettingsScreenImpl(
                 Card(
                     modifier = Modifier.padding(32.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MaterialTheme.colorScheme.surface
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),

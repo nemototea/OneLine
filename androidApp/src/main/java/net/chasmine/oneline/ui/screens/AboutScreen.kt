@@ -3,6 +3,7 @@ package net.chasmine.oneline.ui.screens
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -66,8 +67,16 @@ fun AboutScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("アプリについて") },
+                title = {
+                    Text(
+                        text = "アプリについて",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                },
                 windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -140,7 +149,7 @@ fun AboutScreen(
                             val newMode = !isDeveloperMode
                             settingsManager.setDeveloperMode(newMode)
                             snackbarHostState.showSnackbar(
-                                message = if (newMode) "🔧 開発者モードが有効になりました" else "開発者モードが無効になりました",
+                                message = if (newMode) "開発者モードが有効になりました" else "開発者モードが無効になりました",
                                 duration = SnackbarDuration.Short
                             )
                             versionTapCount = 0
@@ -166,16 +175,16 @@ fun AboutScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
                         text = "OneLineについて",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -189,16 +198,16 @@ fun AboutScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
                         text = "主な機能",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -238,8 +247,9 @@ fun AboutScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Row(
                     modifier = Modifier
@@ -274,16 +284,16 @@ fun AboutScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
                         text = "ライセンス",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -299,7 +309,7 @@ fun AboutScreen(
             Text(
                 text = "© 2025 OneLine",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -325,15 +335,15 @@ fun AboutScreen(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
             ) {}
 
-            // イースターエッグカード
+            // イースターエッグカード（一時的なレイヤー。影ではなく折り目線で締める）
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(32.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column(
                     modifier = Modifier
@@ -361,7 +371,7 @@ fun AboutScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "🎉 隠し要素発見！",
+                        text = "隠し要素発見",
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center
@@ -373,7 +383,7 @@ fun AboutScreen(
                         text = "OneLineを使ってくれてありがとう！\n\n毎日の小さな瞬間を大切に記録していきましょう。",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))

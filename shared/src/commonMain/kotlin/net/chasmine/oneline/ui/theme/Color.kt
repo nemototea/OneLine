@@ -37,9 +37,14 @@ val DarkSecondaryContainer = Color(0xFF3B342A) // 補助背景
 // 補助カラー
 // ==========================================
 
-// エラー・警告系
+// エラー・警告系（セマンティックカラー。朱＝アクセントとは別物として扱う）
 val LightError = Color(0xFFB3261E)             // 落ち着いた赤
 val DarkError = Color(0xFFFFB4AB)              // ダーク用の淡い赤
+// エラーの container。和紙の温かみに寄せた淡い赤（純白の M3 既定は使わない）
+val LightErrorContainer = Color(0xFFF6DAD3)
+val LightOnErrorContainer = Color(0xFF410E0A)
+val DarkErrorContainer = Color(0xFF5C1C15)
+val DarkOnErrorContainer = Color(0xFFF6DAD3)
 
 // 境界線（和紙の折り目のような繊細な線）
 val LightOutline = Color(0xFFDBD1BF)

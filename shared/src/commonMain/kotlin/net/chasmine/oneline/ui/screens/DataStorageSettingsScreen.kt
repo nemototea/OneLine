@@ -1,19 +1,20 @@
 package net.chasmine.oneline.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Cloud
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.preferences.SettingsManager
@@ -40,8 +41,16 @@ fun DataStorageSettingsScreenImpl(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("データ保存設定") },
+                title = {
+                    Text(
+                        text = "データ保存設定",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                },
                 windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -58,14 +67,14 @@ fun DataStorageSettingsScreenImpl(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 現在の設定表示
+            // 現在の設定表示（濃い和紙の帯で、いま選ばれている状態を静かに示す）
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             ) {
                 Row(
@@ -74,16 +83,15 @@ fun DataStorageSettingsScreenImpl(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(
-                        imageVector = if (isLocalOnlyMode) Icons.Default.Phone else Icons.Default.Cloud,
+                        imageVector = if (isLocalOnlyMode) Icons.Outlined.PhoneAndroid else Icons.Outlined.Cloud,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.secondary
                     )
 
                     Column {
                         Text(
-                            text = if (isLocalOnlyMode) "📱 ローカル保存のみ" else "☁️ Git連携",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            text = if (isLocalOnlyMode) "ローカル保存のみ" else "Git連携",
+                            style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             text = if (isLocalOnlyMode) {
@@ -102,125 +110,49 @@ fun DataStorageSettingsScreenImpl(
             }
 
             // ローカル保存オプション
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (!isLocalOnlyMode) {
-                            showMigrationDialog = true
-                        }
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isLocalOnlyMode)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else
-                        MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        RadioButton(
-                            selected = isLocalOnlyMode,
-                            onClick = {
-                                if (!isLocalOnlyMode) {
-                                    showMigrationDialog = true
-                                }
-                            }
-                        )
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "ローカル保存のみ",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "• 設定不要ですぐ使える\n• 完全プライベート\n• 端末紛失でデータ消失のリスク",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+            StorageOptionCard(
+                selected = isLocalOnlyMode,
+                title = "ローカル保存のみ",
+                description = "• 設定不要ですぐ使える\n• 完全プライベート\n• 端末紛失でデータ消失のリスク",
+                onClick = {
+                    if (!isLocalOnlyMode) {
+                        showMigrationDialog = true
                     }
                 }
-            }
+            )
 
             // Git連携オプション
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (isLocalOnlyMode) {
-                            onNavigateToGitSettings()
-                        }
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor = if (!isLocalOnlyMode)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else
-                        MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        RadioButton(
-                            selected = !isLocalOnlyMode,
-                            onClick = {
-                                if (isLocalOnlyMode) {
-                                    onNavigateToGitSettings()
-                                }
-                            }
-                        )
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Git連携",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "• 自動バックアップ\n• 複数端末で同期\n• GitHubの設定が必要",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+            StorageOptionCard(
+                selected = !isLocalOnlyMode,
+                title = "Git連携",
+                description = "• 自動バックアップ\n• 複数端末で同期\n• GitHubの設定が必要",
+                onClick = {
+                    if (isLocalOnlyMode) {
+                        onNavigateToGitSettings()
                     }
-
-                    if (!isLocalOnlyMode && gitRepoUrl.isBlank()) {
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                            )
+                }
+            ) {
+                if (!isLocalOnlyMode && gitRepoUrl.isBlank()) {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Text(
-                                    text = "Git設定が必要です",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Outlined.WarningAmber,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                text = "Git設定が必要です",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 }
@@ -230,7 +162,10 @@ fun DataStorageSettingsScreenImpl(
             if (!isLocalOnlyMode) {
                 Button(
                     onClick = onNavigateToGitSettings,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Text("Git設定を開く")
                 }
@@ -307,6 +242,7 @@ fun DataStorageSettingsScreenImpl(
     migrationResult?.let { result ->
         AlertDialog(
             onDismissRequest = { migrationResult = null },
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("切り替え完了") },
             text = { Text(result) },
             confirmButton = {
@@ -315,5 +251,63 @@ fun DataStorageSettingsScreenImpl(
                 }
             }
         )
+    }
+}
+
+/**
+ * データ保存モードの選択カード（DESIGN.md: カード地の使い分け）
+ *
+ * 選択中は朱の淡い滲み（primaryContainer）、非選択は紙＋折り目線。
+ * これがこの画面で primaryContainer を使う唯一の「本物の選択状態」。
+ */
+@Composable
+private fun StorageOptionCard(
+    selected: Boolean,
+    title: String,
+    description: String,
+    onClick: () -> Unit,
+    extraContent: @Composable (() -> Unit)? = null
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surface
+        ),
+        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                RadioButton(
+                    selected = selected,
+                    onClick = onClick
+                )
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            extraContent?.invoke()
+        }
     }
 }

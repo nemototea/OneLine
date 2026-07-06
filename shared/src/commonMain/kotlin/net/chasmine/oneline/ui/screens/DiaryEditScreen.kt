@@ -85,15 +85,16 @@ fun DiaryEditScreenImpl(
                     title = { Text("日記の削除") },
                     text = { Text("この日記を削除しますか？この操作は元に戻せません。") },
                     confirmButton = {
-                        Button(
+                        // 破壊的操作は error 色のテキストボタン（DESIGN.md: dialog / sheet）
+                        TextButton(
                             onClick = {
                                 showConfirmDeleteDialog = false
                                 scope.launch {
                                     viewModel.deleteEntry()
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
                             )
                         ) {
                             Text("削除")

@@ -7,10 +7,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -85,8 +87,9 @@ fun NotificationSettingsSection() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column(
             modifier = Modifier.padding(20.dp), // カード内の余白を増加
@@ -97,7 +100,8 @@ fun NotificationSettingsSection() {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 ) {
                     Column(
@@ -115,8 +119,7 @@ fun NotificationSettingsSection() {
                             } else {
                                 "日記リマインダーを受け取るには、通知権限の許可が必要です。"
                             },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer
+                            style = MaterialTheme.typography.bodySmall
                         )
                         Button(
                             onClick = {
@@ -128,7 +131,10 @@ fun NotificationSettingsSection() {
                                     permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.error
                             )
@@ -205,7 +211,7 @@ fun NotificationSettingsSection() {
             if (isNotificationEnabled) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant
+                    color = MaterialTheme.colorScheme.outline
                 )
                 
                 Row(
@@ -247,15 +253,15 @@ fun NotificationSettingsSection() {
                         )
                     }
                     
-                    // 時刻表示を見やすくする
+                    // いま選ばれている時刻を朱の淡い滲みで示す
                     Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = MaterialTheme.shapes.small,
                         modifier = Modifier.padding(4.dp)
                     ) {
                         Text(
                             text = String.format("%02d:%02d", notificationHour, notificationMinute),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                         )
@@ -267,10 +273,11 @@ fun NotificationSettingsSection() {
             if (isNotificationEnabled) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant
+                    color = MaterialTheme.colorScheme.outline
                 )
-                
-                Button(
+
+                // 補助アクションは焙じ茶（secondary）の輪郭ボタンで控えめに
+                OutlinedButton(
                     onClick = {
                         coroutineScope.launch {
                             notificationManager.showNotification(
@@ -279,13 +286,17 @@ fun NotificationSettingsSection() {
                             )
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        imageVector = Icons.AutoMirrored.Outlined.Send,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )

@@ -55,7 +55,7 @@ import kotlinx.coroutines.launch
 import net.chasmine.oneline.data.git.GitRepository
 import net.chasmine.oneline.data.preferences.SettingsManagerFactory
 import net.chasmine.oneline.data.repository.RepositoryManager
-import net.chasmine.oneline.ui.components.CustomBottomBar
+import net.chasmine.oneline.ui.components.OneLineBottomBar
 import net.chasmine.oneline.ui.screens.AboutScreen
 import net.chasmine.oneline.ui.screens.CalendarScreen
 import net.chasmine.oneline.ui.screens.DataStorageSettingsScreen
@@ -208,7 +208,7 @@ fun OneLineApp(
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     Text(
-                        text = "📱 ローカル保存のみ",
+                        text = "ローカル保存のみ",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -219,7 +219,7 @@ fun OneLineApp(
                     )
                     
                     Text(
-                        text = "☁️ Git連携",
+                        text = "Git連携",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -245,7 +245,7 @@ fun OneLineApp(
                             }
                         }
                     ) {
-                        Text("📱 ローカル保存")
+                        Text("ローカル保存")
                     }
                     
                     TextButton(
@@ -254,7 +254,7 @@ fun OneLineApp(
                             navController.navigate("git_settings")
                         }
                     ) {
-                        Text("☁️ Git設定")
+                        Text("Git設定")
                     }
                 }
             },
@@ -305,7 +305,7 @@ fun OneLineApp(
                 route?.startsWith("about") != true &&
                 route?.startsWith("diary_edit") != true) {
                 
-                CustomBottomBar(
+                OneLineBottomBar(
                     selectedTab = selectedTab,
                     onTabSelected = { tab ->
                         previousTab = selectedTab

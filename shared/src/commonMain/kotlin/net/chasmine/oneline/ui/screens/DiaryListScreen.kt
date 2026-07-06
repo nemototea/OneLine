@@ -75,6 +75,10 @@ fun DiaryListScreenImpl(
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),
+                // 和紙の地と一体化させ、面の色差ではなく余白で区切る
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 actions = {
                     IconButton(
                         onClick = { viewModel.refresh() },

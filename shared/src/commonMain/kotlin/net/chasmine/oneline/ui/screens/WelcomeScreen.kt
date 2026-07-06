@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.alexzhirkevich.compottie.Compottie
@@ -163,12 +163,12 @@ fun WelcomeScreenImpl(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 24.dp)
-                    .height(52.dp)
+                    .height(52.dp),
+                shape = RoundedCornerShape(14.dp)
             ) {
                 Text(
                     text = "今日の日記を書いてみる",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         } else {
@@ -194,7 +194,8 @@ fun WelcomeScreenImpl(
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
-                    }
+                    },
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Text("次へ")
                 }
@@ -220,7 +221,6 @@ private fun TutorialPageContent(page: TutorialPage) {
         Text(
             text = page.title,
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
@@ -230,7 +230,7 @@ private fun TutorialPageContent(page: TutorialPage) {
             text = page.description,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -286,7 +286,6 @@ private fun NotificationSetupPage(
         Text(
             text = "書き忘れを防ぐ",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
@@ -296,7 +295,7 @@ private fun NotificationSetupPage(
             text = "毎日決まった時間にリマインダーを受け取って、日記の習慣をつくりましょう",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -341,12 +340,12 @@ private fun NotificationSetupPage(
                             style = MaterialTheme.typography.titleMedium
                         )
                         Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             shape = MaterialTheme.shapes.small
                         ) {
                             Text(
                                 text = formatTime(hour, minute),
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                             )
@@ -386,9 +385,8 @@ private fun StartPage() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "準備ができました！",
+            text = "準備ができました",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
@@ -398,7 +396,7 @@ private fun StartPage() {
             text = "日記はまず端末の中に保存されます。\n設定不要で、完全にプライベートです。",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -426,8 +424,7 @@ private fun StartPage() {
                 ) {
                     Text(
                         text = "クラウド同期もできます",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = "Gitリポジトリと連携すれば、自動バックアップや複数端末での同期が可能です。「設定 > データ保存」からいつでも切り替えられます。",

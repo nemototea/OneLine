@@ -1,9 +1,9 @@
 package net.chasmine.oneline.ui.components
 
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,22 +26,21 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import net.chasmine.oneline.ui.theme.AccentGradientCenter
 import net.chasmine.oneline.ui.theme.AccentGradientEnd
 import net.chasmine.oneline.ui.theme.AccentGradientStart
 
 /**
- * Swarm風のボトムナビゲーションバー
- * - iOSライクな半透明背景
- * - アニメーション付きのタブ選択
- * - グラデーションFABボタン
+ * ボトムナビゲーションバー（DESIGN.md: bottom-bar / fab-write）
+ *
+ * - 2タブ（日記・カレンダー）＋中央に「書く」FAB
+ * - 紙のバー: surface 単色・上角丸 20・区切りは折り目（outline 1dp）。影は使わない
+ * - FAB はアプリで唯一のグラデーション（朱→琥珀）。浮いている意味を持つ唯一の例外として影を持つ
  */
 @Composable
-fun CustomBottomBar(
+fun OneLineBottomBar(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     onNewEntryClick: () -> Unit,
@@ -57,14 +56,13 @@ fun CustomBottomBar(
             .fillMaxWidth()
             .height(totalHeight)
     ) {
-        // iOS風の半透明背景を持つナビゲーションバー
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(surfaceHeight)
                 .align(Alignment.BottomCenter),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-            shadowElevation = 8.dp,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
         ) {
             Row(
@@ -75,8 +73,7 @@ fun CustomBottomBar(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 日記一覧タブ
-                SwarmTabItem(
+                BottomBarTabItem(
                     icon = Icons.AutoMirrored.Filled.List,
                     label = "日記",
                     selected = selectedTab == 0,
@@ -87,8 +84,7 @@ fun CustomBottomBar(
                 // 中央のスペース（FABのため）
                 Spacer(modifier = Modifier.width(80.dp))
 
-                // カレンダータブ
-                SwarmTabItem(
+                BottomBarTabItem(
                     icon = Icons.Default.CalendarMonth,
                     label = "カレンダー",
                     selected = selectedTab == 1,
@@ -98,7 +94,7 @@ fun CustomBottomBar(
             }
         }
 
-        // Swarm風のグラデーションFAB
+        // 「書く」FAB — 朱→琥珀のグラデーションはこのアクション専用
         FloatingActionButton(
             onClick = {
                 if (!isSyncing) {
@@ -125,7 +121,6 @@ fun CustomBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        // 「書く」アクションだけに使う朱→琥珀のグラデーション
                         brush = Brush.linearGradient(
                             colors = listOf(
                                 AccentGradientStart,
@@ -157,12 +152,10 @@ fun CustomBottomBar(
 }
 
 /**
- * Swarm風のタブアイテム
- * - アニメーション付きの選択状態表示
- * - iOS風の控えめなデザイン
+ * タブアイテム。選択状態は朱＋わずかなスケールで静かに伝える
  */
 @Composable
-private fun SwarmTabItem(
+private fun BottomBarTabItem(
     icon: ImageVector,
     label: String,
     selected: Boolean,
@@ -212,7 +205,6 @@ private fun SwarmTabItem(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 11.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
             ),
             color = iconColor
